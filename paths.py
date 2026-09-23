@@ -1,15 +1,22 @@
-"""Single source of truth for where this repo's data lives.
+"""Single source of truth for where data lives.
 
 Nothing else in the repo — scrapers, unify, UI — may build a data path of its
-own. Everything derives from one root so a checkout can be pointed at a
-different disk (a scratch dir, a colleague's export, a mounted share) without
-editing code:
+own. The default root is <repo>/data, which is gitignored: each repo carries
+the dataset it produces, and nothing large is ever committed.
+
+Repos also need sources they do not produce (news-explorer unifies all four),
+so `source_dir()` falls back to the sibling repo that owns a source when this
+repo has no copy — see SOURCE_REPO below. That makes the common case need no
+configuration at all.
+
+To point a checkout at another disk (a scratch dir, a colleague's export, a
+mounted share) without editing code, set the root explicitly — this disables
+the sibling fallback, so the root must then hold every source you need:
 
     NEWS_DATA_DIR=/scratch/news-data  python unify/unify.py
     NEWS_DATA_DIR=/scratch/news-data  streamlit run ui/dataset_explorer.py
 
-or per-run with the `--data-dir` flag every script exposes. With neither set,
-the root is <repo>/data, so a fresh clone works from any working directory.
+or per-run with the `--data-dir` flag every script exposes.
 
 Import it from anywhere in the repo with:
 
@@ -60,14 +67,46 @@ def add_data_dir_arg(parser: argparse.ArgumentParser) -> None:
                         help=f"data root (default: ${DATA_DIR_ENV} or <repo>/data)")
 
 
+#: which repo owns each source's raw data, now that every repo carries its own
+#: data/ directory. The explorer has to read all of them to unify, so it needs
+#: to find data it does not own.
+SOURCE_REPO = {
+    "gdelt": "news-gdelt",
+    "ground_news": "news-ground-news",
+    "discovery": "news-ground-news",
+    "eventregistry": "news-eventregistry",
+    "unified": "news-explorer",
+}
+
+
 def source_dir(source: str) -> str:
-    """Where one source's raw scraper output lives, e.g. <data>/gdelt."""
-    return os.path.join(data_dir(), source)
+    """Where one source's raw scraper output lives, e.g. <data>/gdelt.
+
+    Each repo holds its own data/ (gitignored), so the local path is used when
+    it exists — that is always the right answer for the repo that produces the
+    source. When it does not exist we look in the sibling repo that owns the
+    source, which is how news-explorer reaches the collectors' output without a
+    shared data root. $NEWS_DATA_DIR still overrides everything.
+
+    Falls back to the local path so that *writes* land under this repo rather
+    than in a sibling."""
+    local = os.path.join(data_dir(), source)
+    if os.path.isdir(local) or os.environ.get(DATA_DIR_ENV):
+        return local
+    owner = SOURCE_REPO.get(source)
+    if owner:
+        sibling = os.path.join(os.path.dirname(REPO_ROOT), owner, "data", source)
+        if os.path.isdir(sibling):
+            return sibling
+    return local
 
 
 def unified_dir() -> str:
-    """Where unify.py writes the unified-format datasets the UI reads."""
-    return os.path.join(data_dir(), "unified")
+    """Where unify.py writes the unified-format datasets the UI reads.
+
+    Owned by news-explorer; resolved through source_dir so the other repos can
+    read it too."""
+    return source_dir("unified")
 
 
 def unified_path(source: str) -> str:

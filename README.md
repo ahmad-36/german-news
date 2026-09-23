@@ -20,8 +20,11 @@ the former monolithic `news` repo (Sept 2026, now retired to `archive/news`). Si
 
 ## Where data lives
 
+**In this repo, under [`data/`](data) — gitignored, so it is never pushed.** This repo owns
+`data/eventregistry/` (~201 MB). Given the ToS above, that gitignore is doing real work:
+this data must not end up in a pushed commit.
+
 ```bash
-export NEWS_DATA_DIR=/nfs/home/abdullaha/news-data
 export EVENTREGISTRY_API_KEY=...        # or ~/.eventregistry_key
 ```
 
