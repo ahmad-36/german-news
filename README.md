@@ -9,9 +9,19 @@ Four providers are covered in depth — **AllSides**, **Ground News**, **GDELT**
 that were not previously considered.
 
 Every number in this repo was measured directly against the data on disk
-(~7.3 GB, collected Jan–Aug 2026) rather than taken from provider marketing. The
-collection code lives in [`ahmad-36/news`](https://github.com/ahmad-36/news); this
-repo is the written analysis.
+(~7.3 GB, collected Jan–Aug 2026) rather than taken from provider marketing. This repo is
+the written analysis; the collection code lives in one repo per source:
+
+| repo | what it collects |
+|---|---|
+| [muws-allsides-dataset](https://github.com/muws-workshop/muws-allsides-dataset) | AllSides |
+| [news-gdelt](../news-gdelt) | GDELT — collection, clustering, enrichment |
+| [news-ground-news](../news-ground-news) | Ground News — scraper, discovery, keyword list |
+| [news-eventregistry](../news-eventregistry) | Event Registry |
+| [news-explorer](../news-explorer) | unified format + Streamlit UI (cross-source) |
+
+All share one data root via `NEWS_DATA_DIR`. They were split out of a single `news` repo
+in Sept 2026, which is now retired to `archive/`.
 
 ---
 
@@ -27,6 +37,8 @@ repo is the written analysis.
 | [docs/translation_problem.md](docs/translation_problem.md) | Ground News mistranslation → wrong clustering (paper-worthy) |
 | [docs/api_filters.md](docs/api_filters.md) | Exactly which filters GDELT and Event Registry expose |
 | [docs/other_sources.md](docs/other_sources.md) | Nine providers beyond the four |
+| [docs/keywords.md](docs/keywords.md) | The German keyword list, how it performed, how to extend it |
+| [docs/collection_policy.md](docs/collection_policy.md) | Why collection is now bounded, and a measured one-week test |
 
 ---
 
@@ -159,6 +171,19 @@ They are complements, not alternatives: **GDELT gives the structure, Event Regis
 the text, Ground News gives the labels, AllSides gives the template.**
 
 ---
+
+## Collection is now bounded
+
+The Jan–Aug 2026 GDELT census cost **172 GB of bandwidth** for 1.4M articles with no text
+and no labels, 91% of which was discarded after collection. GDELT collection now defaults
+to **a short date range plus a topic or keyword filter**.
+
+Measured on one week (2026-01-05 → 01-12) with the 30-term German-politics list:
+**4,220 articles kept of 127,705 seen (3.3%)** → **273 stories with 3+ independent
+outlets**, median 4 outlets per story, max 48 — in about **10 minutes**.
+
+Details, including what a Jan-2025-onward range would cost:
+[docs/collection_policy.md](docs/collection_policy.md).
 
 ## Recommended next moves
 
