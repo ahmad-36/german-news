@@ -10,16 +10,13 @@ the former monolithic `news` repo (Sept 2026, now retired to `archive/news`). Si
 
 ## Where data lives
 
-All repos share one data root. Nothing here builds a path of its own — everything goes
-through [paths.py](paths.py).
+**In this repo, under [`data/`](data) — gitignored, so it is never pushed.** This repo owns
+`data/gdelt/` (~5.9 GB: the raw article dump, clustered stories, and enrichment).
 
-```bash
-export NEWS_DATA_DIR=/nfs/home/abdullaha/news-data     # shared root
-python gdelt_dump_pull.py --data-dir /some/other/root  # or per-run
-```
-
-With neither set the root is `<repo>/data`, which is almost certainly **not** what you
-want now that the repos are split. Set `NEWS_DATA_DIR`.
+Nothing here builds a path of its own; everything goes through [paths.py](paths.py).
+No environment variable is needed — `paths.source_dir()` uses this repo's `data/` for
+sources it owns and finds the sibling repo's `data/` for anything it doesn't. Override
+per run with `--data-dir`, or globally with `$NEWS_DATA_DIR`.
 
 ## ⚠️ Collect bounded, not at scale
 
