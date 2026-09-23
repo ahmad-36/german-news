@@ -3,7 +3,9 @@
 The cross-source layer: one unified format for every provider, and one Streamlit UI that
 reads it.
 
-Split out of the former monolithic `news` repo (Sept 2026). The collectors now live in
+Lives in `news/` alongside its sister repos, each an independent git repo. Split out of
+the former monolithic `news` repo (Sept 2026, now retired to `archive/news`). The
+collectors now live in
 [news-gdelt](../news-gdelt), [news-ground-news](../news-ground-news),
 [news-eventregistry](../news-eventregistry) and
 [muws-allsides-dataset](https://github.com/muws-workshop/muws-allsides-dataset).

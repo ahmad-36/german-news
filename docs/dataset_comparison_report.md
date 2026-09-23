@@ -170,7 +170,7 @@ one article each.
 
 ### GDELT clustering internals
 
-[`gdelt_cluster_bulk.py`](../scrapers/gdelt/gdelt_cluster_bulk.py) — greedy single-pass
+[`gdelt_cluster_bulk.py`](../../news-gdelt/gdelt_cluster_bulk.py) — greedy single-pass
 clustering, bucketed by day, blocked on a rare-token inverted index, similarity =
 `SequenceMatcher` ratio over normalized titles, **threshold 0.65**, `--min-outlets 3`
 for the delivered file. Domains belonging to the same media group (Ippen: merkur.de,
