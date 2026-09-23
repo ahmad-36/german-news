@@ -20,8 +20,10 @@ the written analysis; the collection code lives in one repo per source:
 | [news-eventregistry](../news-eventregistry) | Event Registry |
 | [news-explorer](../news-explorer) | unified format + Streamlit UI (cross-source) |
 
-All share one data root via `NEWS_DATA_DIR`. They were split out of a single `news` repo
-in Sept 2026, which is now retired to `archive/`.
+All five sit side by side under `news/`, each an independent git repository — `news/` is
+a plain directory, not a repo, so the histories stay separate. They share one data root
+via `NEWS_DATA_DIR` (`~/news-data`, outside the tree). They were split out of a single
+monolithic `news` repo in Sept 2026, which is retired at `archive/news`.
 
 ---
 
