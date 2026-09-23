@@ -10,11 +10,12 @@ the former monolithic `news` repo (Sept 2026, now retired to `archive/news`). Si
 
 ## Where data lives
 
-```bash
-export NEWS_DATA_DIR=/nfs/home/abdullaha/news-data
-```
+**In this repo, under [`data/`](data) — gitignored, so it is never pushed.** This repo owns
+`data/ground_news/` and `data/discovery/` (~22 MB).
 
-All repos share that root via [paths.py](paths.py); every script also takes `--data-dir`.
+No environment variable is needed: [paths.py](paths.py) uses this repo's `data/` for the
+sources it owns and finds sibling repos' `data/` for anything else. Every script also
+takes `--data-dir`.
 
 ## Scraping
 
