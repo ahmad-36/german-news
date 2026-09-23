@@ -27,6 +27,48 @@ data/unified/                            ← written here
 ~/qbias/Qbias/allsides_crawl/            ← read via $QBIAS_DIR
 ```
 
+## Raw vs unified — which files are which
+
+Each collector repo's `data/` holds that source's **raw, native-shape** output. This repo's
+`data/unified/` holds the **converted** copies. They are different files, and both are kept.
+
+| file | shape |
+|---|---|
+| `../news-gdelt/data/gdelt/gdelt_stories_de_min3.jsonl` | raw — `n_outlets`, `probes`, `seendate`, `socialimage`, `themes` |
+| `../news-ground-news/data/ground_news/ground_news.jsonl` | raw — `sources`, `summary_left`, `source_bias`, `dek` |
+| `../news-eventregistry/data/eventregistry/articles_germany.jsonl` | raw — one flat article per line |
+| **`data/unified/unified_*.jsonl`** | **unified — `articles[]` each with `stance`, `bias_rating`, `body_text`, `meta`** |
+
+The UI only ever reads the unified files. Raw is kept as the archive, because unification is
+lossy: source-specific fields survive only inside `meta`, so a schema change is a cheap
+re-run from raw rather than a re-crawl.
+
+## Why unification is a separate step, not done at crawl time
+
+It would be neater if each crawler simply wrote the unified format directly. It cannot,
+for three concrete reasons — the unified record depends on data that does not exist yet
+when the crawler runs:
+
+1. **GDELT bodies and images arrive later.** `convert_gdelt` reads each story's
+   `enrichment` field, which `gdelt_enrich_bulk.py` produces by crawling the outlets
+   *after* collection. At `gdelt_dump_pull.py` time there are no bodies to write.
+2. **GDELT stories do not exist at collection time.** A unified record is story-level, but
+   the collector emits *articles*; `gdelt_cluster_bulk.py` groups them into stories in a
+   later pass.
+3. **AllSides bodies come from a different repo.** They are joined by URL out of the Qbias
+   `multi_source_scrape` output, which is an independent crawl on its own schedule.
+
+And the cost it would save is small. A **full** unification of all four sources — the
+entire 7.3 GB corpus — takes **178 seconds** (~4 GB peak RSS). It is not the bottleneck;
+collection is. Running it is also how stale output gets repaired: the run on 2026-09-23
+attached **154,084 GDELT bodies** that the previous unified files predated and therefore
+showed as zero.
+
+If unification later does become slow, the fix is to make it *incremental* (convert only
+stories whose raw mtime is newer than the unified output), not to fold it into the
+crawlers — that would couple every collector to the unified schema and make a schema change
+require a re-crawl instead of a 3-minute local pass.
+
 ## Unify
 
 ```bash
@@ -40,10 +82,10 @@ coarse `stance` (left/center/right/unknown) and a fine `bias_rating` (7-tier); s
 without ratings get `unknown`. Source-specific extras live verbatim under `meta` at both
 story and article level. Full schema: the [unify/unify.py](unify/unify.py) docstring.
 
-> **Re-run `unify.py`.** The GDELT enrichment file has grown to **213,532 records**
-> (154,084 bodies, 145,078 images, 88,992 captions) since the current unified files were
-> built, and they attach almost none of it. This costs nothing and is the single
-> highest-value thing to run here.
+> **Done 2026-09-23.** The unified files were rebuilt and now carry the GDELT enrichment
+> (**154,084 bodies**, up from 0). The previous files are kept at
+> `data/unified/archive/pre-enrichment-20260923/`. Re-run `unify.py` whenever a collector
+> has produced new data — it is a full rebuild and takes ~3 minutes.
 
 ## Explore
 
