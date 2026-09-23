@@ -13,12 +13,19 @@ This repo consumes what they produce.
 
 ## Where data lives
 
-```bash
-export NEWS_DATA_DIR=/nfs/home/abdullaha/news-data
-```
+**In this repo, under [`data/`](data) — gitignored, so it is never pushed.** This repo owns
+`data/unified/` (~1.3 GB), the output of `unify.py`.
 
-Every collector writes under that root; this repo reads from it. All paths go through
-[paths.py](paths.py).
+Its *inputs* live in the collector repos, and [paths.py](paths.py) finds them
+automatically — no environment variable required:
+
+```
+data/unified/                            ← written here
+../news-gdelt/data/gdelt/                ← read from the sibling
+../news-ground-news/data/ground_news/    ← read from the sibling
+../news-eventregistry/data/eventregistry/← read from the sibling
+~/qbias/Qbias/allsides_crawl/            ← read via $QBIAS_DIR
+```
 
 ## Unify
 
