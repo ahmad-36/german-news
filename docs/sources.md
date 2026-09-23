@@ -2,6 +2,7 @@
 
 For each provider: **how scraping works**, **what you get**, and **what the limits are**.
 All figures measured against the data on disk (Jan–Aug 2026, ~7.3 GB).
+Every limit noted here also appears, with status, in the [problems register](problems.md).
 
 ---
 
@@ -53,20 +54,14 @@ Topic is an attribute of a story you have already fetched, not a crawl axis.
 
 ### Limits
 
-- 🔴 **US-only. Zero German articles.** This is disqualifying for the German dataset and
-  no amount of scraping changes it.
-- 🔴 **~8× article inflation.** 68,352 slots collapse to 8,072 distinct URLs, because the
-  same article is reused across many story pages via the "More from the Left/Center/Right"
-  sidebars. **Any per-article statistic computed without deduplicating is wrong** — see
-  [stance_labels.md](stance_labels.md) §4 for a case where this inflated a headline result
-  by 22 points.
-- ⚠️ `is_featured: false` articles come from those sidebars and may not be about the story.
-  Filter them before treating them as story members.
-- ⚠️ Body text on only 17.3%, and it requires a separate per-domain scraper per outlet.
-- ⚠️ Labels are **per outlet**, and the three-column layout makes the corpus balanced by
-  construction (left 22,967 / center 22,669 / right 22,716) — a layout artefact, not a
-  property of the news.
-- ⚠️ Scraped content; the usual redistribution caveats apply.
+- 🔴 **US-only — zero German articles.** Disqualifying for the German dataset.
+- 🔴 **~8× article inflation** — 68,352 slots, 8,072 unique URLs. Deduplicate before
+  computing anything per-article; this has already produced one wrong headline result.
+- 🔴 **Labels are per outlet**, so the corpus is balanced by construction (22,967 / 22,669
+  / 22,716) — a layout artefact, not a property of the news.
+- ⚠️ Bodies on only 17.3%, and each outlet needs its own scraper.
+- ⚠️ `is_featured: false` articles come from sidebars and may be off-story.
+- ⚠️ Scraped content — the usual redistribution caveats.
 
 ---
 
@@ -114,23 +109,16 @@ impersonation to get past bot detection; no browser needed.
 
 ### Limits
 
-- 🔴 **Tiny.** 894 stories after ~14 months of scraping — roughly 2 stories/day. Not a
-  corpus; treat it as a label source and an evaluation set.
-- 🔴 **No body text at all.** Any text-based modelling needs a separate fetch against
-  45,601 URLs.
-- 🔴 **No images at all.**
-- 🔴 **Only 12.1% German**, and its German slice is three orders of magnitude below GDELT.
-- ⚠️ **37.4% of labels are `unknown`**, concentrated on exactly the small and non-English
-  outlets that make up the German tail.
-- ⚠️ **Labels are per outlet and contested.** Aggregated from MBFC (25,435 articles),
-  Ad Fontes (19,034) and AllSides (8,330); **the three disagree on 32.1%**.
-- ⚠️ **Factuality field exists but is 0% populated** in this dump.
-- ⚠️ `summary_right` is often the empty string even when left and center are populated,
-  which biases any study conditioning on all three.
-- ⚠️ **Translation happens before clustering** and destroys entities — see
-  [translation_problem.md](translation_problem.md).
-- ⚠️ Language tags are unreliable (Luxembourgish tagged `de`).
-- ⚠️ 5,477 domains is a worldwide long tail at median 1–2 articles per outlet, not depth.
+- 🔴 **Tiny** — 894 stories in ~14 months (~2/day). A label source, not a corpus.
+- 🔴 **No body text and no images at all** — headline + dek only.
+- 🔴 **Only 12.1% German.**
+- 🔴 **Labels are per outlet and contested** — averaged from MBFC, Ad Fontes and AllSides,
+  which disagree on **32.1%**. 37.4% are the literal string `unknown`, concentrated on the
+  German tail.
+- ⚠️ **Summaries are LLM-generated** (`summary_*`, `bias_comparison`, `generated_headline`).
+  The labels are not. `summary_right` is often empty when left and center are populated.
+- ⚠️ **Translation runs before clustering** and loses entities.
+- ⚠️ Language tags are unreliable (Luxembourgish tagged `de`); factuality field is 0% populated.
 
 ---
 
@@ -190,22 +178,18 @@ reference: [api_filters.md](api_filters.md).
 
 ### Limits
 
-- 🔴 **No body text, no descriptions natively.** GKG gives title + URL + themes. Bodies and
-  images require our own crawl of the outlets.
-- 🔴 **No bias signal whatsoever** — stance is `unknown` for all 1,408,753 articles.
-- ⚠️ **Clustering is ours and it is shallow.** Two outlets rewriting the same event under
-  different headlines will not merge; a story crossing midnight splits into two ids; a 0.65
-  title threshold merges recurring headlines (weather, market wraps) within a day.
-- ⚠️ **GKG has no title column** — titles come from `<PAGE_TITLE>` inside the `Extras` XML.
-  Dropping `Extras` to save BigQuery quota silently destroys clustering.
-- ⚠️ **Junk records.** GDELT indexes section fronts and homepages. `--min-outlets 3` is why
-  the delivered file is 173,388 of 2,015,373 stories (8.6%).
-- ⚠️ **No outlet-country field on the bulk route** (unlike the DOC API's `sourcecountry`) —
-  all 173,388 stories carry `countries: ["?"]`.
-- ⚠️ **Expensive to pull.** 172 GB of bandwidth for Jan–Aug 2026 (~5 h at 8 workers).
-- ⚠️ GKG themes are high-recall/low-precision, and `TAX_ETHNICITY_GERMAN` /
-  `TAX_WORLDLANGUAGES_GERMAN` are artefacts of our own language filter, not subjects.
-- 🟢 **Upside: openly licensed.** The only provider here whose data we may republish.
+- 🔴 **No body text and no bias signal.** Bodies need our own second crawl: 154,084 fetched
+  of 1.4M.
+- 🟠 **Clustering is ours and shallow** — `SequenceMatcher` at 0.65 within a day bucket.
+  Different headlines never merge; a story crossing midnight splits in two.
+- ⚠️ **Titles live in the `Extras` XML**, not a GKG column — dropping `Extras` to save
+  BigQuery quota silently destroys clustering.
+- ⚠️ **No publisher country on the dump route** — all stories carry `countries: ["?"]`.
+- ⚠️ Themes are high-recall/low-precision, and the top ones are artefacts of our own
+  language filter.
+- ⚠️ Indexes section fronts and homepages; `--min-outlets 3` is why 173,388 of 2,015,373
+  stories survive.
+- 🟢 **Openly licensed** — the only source here we may republish.
 
 ---
 
@@ -250,34 +234,17 @@ The filter set is the richest of any provider here — `lang`, `conceptUri`, `ca
 
 ### Limits
 
-- 🔴 **Redistribution prohibited.** The ToS forbid sharing or sublicensing data from the
-  service and claim even structured metadata as Event Registry's property. **This dataset
-  cannot be published** — internal evaluation only. This is the blocking constraint for any
-  public release.
-- 🔴 **Cost wall.** 2,000 non-renewing free tokens; the 7-day pull consumed ~1,540, leaving
-  **461**. A second 7-day pull (~1,790 tokens) is no longer affordable.
-- 🔴 **30-day window.** Anything older needs the paid archive at 5 tokens *per searched
-  year*, so pre-July-2026 German news is effectively unavailable.
-- 🔴 **Not a story dataset.** 100% singletons after unification; 83.5% of articles have no
-  `eventUri` even in the raw file.
-- 🔴 **The duplicate flag destroys the interesting clusters.** Of 59,088 articles flagged
-  `isDuplicate: true`, exactly **2** carry an `eventUri` — ER routes duplicates to an
-  original rather than into an event. And the flag fires across distributors: 6,164 of
-  14,830 distinct duplicate-flagged titles appear at ≥2 domains, up to **48 domains** for
-  one dpa wire item. The case you most want as a cluster is the case ER deletes.
-  **Recoverable:** title-clustering the raw file yields 67,005 clustered articles (51.7%)
-  at zero API cost — ~8× what `eventUri` surfaces.
-- ⚠️ **`lang="deu"` blocks cross-lingual coverage.** ~9.5% of events are anchored in a
-  non-German language and we hold only their German tail. Per-language re-pulls multiply
-  cost.
-- ⚠️ **No topics, concepts or `storyUri`** — all excluded by the default `returnInfo`.
-  A scraper defect, but fixing it costs tokens.
-- ⚠️ **`sueddeutsche.de` is `private: true`** → ~300-char teaser bodies only, despite being
-  the 5th largest source (2,645 articles).
-- ⚠️ Volume skewed to low-signal material — finance wires (wallstreet-online.de 4,249;
-  finanzen.at 3,725) and the Ippen local network dominate.
-- ⚠️ 601 articles carry a `dateTimePub` before 2026-07 (min 2014-01-27) — stale publisher
-  timestamps, not archive access. Filter on `dateTime` (crawl time) for a clean window.
+- 🔴 **Redistribution prohibited.** The ToS claim even structured metadata. Internal
+  evaluation only — the blocking constraint on any public release.
+- 🔴 **461 of 2,000 free tokens left**; 30-day window; archive costs 5 tokens/year. A second
+  7-day pull is unaffordable.
+- 🔴 **Not a story dataset** — 100% singletons; 83.5% have no `eventUri`.
+- 🔴 **The duplicate flag deletes the best clusters** — one dpa item at 48 independent
+  outlets is excluded from the event graph. Recoverable locally by title-clustering (51.7%
+  of articles, zero API cost).
+- ⚠️ **Zero topics collected** — default `returnInfo` excludes concepts and categories.
+- ⚠️ `lang="deu"` blocks cross-lingual coverage; `sueddeutsche.de` returns 300-char teasers;
+  601 articles carry stale pre-2026 publisher timestamps (filter on `dateTime`).
 
 ---
 

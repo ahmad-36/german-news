@@ -39,6 +39,7 @@ Sept 2026, which is retired at `archive/news`.
 | [docs/stance_labels.md](docs/stance_labels.md) | Where stance labels come from, and our experiments on them |
 | [docs/translation_problem.md](docs/translation_problem.md) | Ground News mistranslation → wrong clustering (paper-worthy) |
 | [docs/api_filters.md](docs/api_filters.md) | Exactly which filters GDELT and Event Registry expose |
+| [docs/problems.md](docs/problems.md) | **Every known problem in one register**, with status |
 | [docs/other_sources.md](docs/other_sources.md) | Nine providers beyond the four |
 | [docs/keywords.md](docs/keywords.md) | The German keyword list, how it performed, how to extend it |
 | [docs/collection_policy.md](docs/collection_policy.md) | Why collection is now bounded, and a measured one-week test |

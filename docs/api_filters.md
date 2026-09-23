@@ -1,160 +1,90 @@
-# API Filter Reference — GDELT and Event Registry
+# What We Can Filter On
 
-What each API actually lets you filter on. AllSides and Ground News have **no public API**;
-both are scraped from HTML, so their "filters" are whichever listing pages exist
-(date-range roundups for AllSides; `/top`, `/blindspot`, `/interest/<topic>` and a keyword
-search for Ground News).
+AllSides and Ground News have **no API** — they are scraped, so the only "filters" are
+whichever listing pages exist. This page is about the two that do have one.
 
 ---
 
 ## GDELT
 
-Three access routes with **very different capabilities**. This is the thing to get right:
-the rich filter set belongs to the route you cannot collect volume from.
+Three ways in. We use one of them.
 
-| Route | Filters | Volume ceiling | Use for |
+| route | do we use it? | filtering | ceiling |
 |---|---|---|---|
-| **DOC 2.0 API** | 🟢 the full set below | 🔴 **250 results, no pagination** | probing, prototyping |
-| **Raw 15-min dumps** | 🟡 none — you filter locally | 🟢 unlimited (bandwidth-bound) | **collection** |
-| **BigQuery** | 🟢 SQL over all columns | 🟡 1 TB/month free sandbox | targeted large pulls |
+| **Raw 15-min dumps** | ✅ **yes — 100% of our data** | none server-side; we filter locally | bandwidth only |
+| BigQuery | ❌ never run | full SQL | 1 TB/month free |
+| DOC 2.0 API | ⚠️ tried early, abandoned | rich (see below) | **250 results, no pagination** |
 
-### DOC 2.0 API operators
+**What we actually do:** download every 15-minute GKG file for a date range and filter in
+memory. The German-language filter is hard-coded; topic and keyword filters were added in
+Sept 2026 (`--keywords-file`, `--themes-file`) — see
+[collection_policy.md](collection_policy.md).
 
-**Source and language**
+**Why not the DOC API**, despite having the best filters: it caps at **250 results with no
+pagination**, and only covers the **last 3 months**. That cap — not news volume — is why an
+early pull produced just 654 stories. It is fine for probing a query, useless for
+collection.
 
-| Operator | Syntax | Notes |
-|---|---|---|
-| `sourcelang` | `sourcelang:german` | 65 machine-translated languages |
-| `sourcecountry` | `sourcecountry:germany` | 2-char FIPS code or name. **Not available on the dump route** |
-| `domain` | `domain:zeit.de` | partial match |
-| `domainis` | `domainis:un.org` | exact match — prefer this |
+**Why not BigQuery:** it would work, but the raw dumps already give complete coverage at no
+quota cost. Worth revisiting only if we need server-side filtering over a long range. Note
+the `Extras` column is both the expensive one and the one holding article titles — dropping
+it to save quota silently destroys clustering.
 
-**Content**
+### DOC API filters, if we ever go back to it
 
-| Operator | Syntax | Notes |
-|---|---|---|
-| `theme` | `theme:TERROR` | GKG themes; qualifies at 100+ articles in 2 years |
-| `tone` | `tone<-5`, `tone>5` | range roughly −20…+20 |
-| `toneabs` | `toneabs>10` | emotional intensity regardless of direction |
-| `near` | `near20:"trump putin"` | max word distance; word order affects it |
-| `repeat` | `repeat3:"trump"` | **single word only**, no phrases; "at least N times" |
-| phrase | `"donald trump"` | quoted exact phrase |
-| boolean OR | `(clinton OR sanders OR trump)` | **cannot be nested** |
-| negation | `-sourcelang:spanish` | prefixes any operator, word or phrase |
+Useful ones: `sourcelang`, `sourcecountry`, `domain`/`domainis`, `theme` (GKG themes),
+`tone` / `toneabs`, `near20:"a b"` (proximity), `repeat3:"word"`, phrases in quotes,
+`(a OR b)`, and `-` to negate anything.
 
-**Images** — a capability we are not currently using at all, and the only route to
-image-level filtering across any provider here:
+It also has **image filters nothing else here offers** — `imagetag` (10k recognised
+objects), `imageocrmeta` (text *inside* the image, 80+ languages), `imagewebtag`
+(reverse-image-search terms), `imagenumfaces`, `imagefacetone`. Unused so far, and the only
+route to image-level selection in this project.
 
-| Operator | Syntax | What it does |
-|---|---|---|
-| `imagetag` | `imagetag:"safesearchviolence"` | 10,000+ recognised objects |
-| `imageocrmeta` | `imageocrmeta:"zika"` | OCR of text *in* the image, 80+ languages |
-| `imagewebtag` | `imagewebtag:"drone"` | reverse-image-search descriptors |
-| `imagewebcount` | `imagewebcount>100` | how widely the image is reused (≤200 pages tracked) |
-| `imagenumfaces` | `imagenumfaces>3` | foreground faces only |
-| `imagefacetone` | `imagefacetone<-1.5` | facial expression tone, roughly +2…−2 |
+### What GDELT cannot filter on
 
-**Time**
-
-| Parameter | Syntax | Limit |
-|---|---|---|
-| `timespan` | `timespan=1d`, `3w`, `1m` | minimum 15 min; **default 3 months** |
-| `startdatetime` / `enddatetime` | `20260101000000` | 🔴 **must fall within the last 3 months** |
-
-> ⚠️ **The 3-month window is the DOC API's real limit**, alongside the 250-result cap.
-> Historical collection *must* go through the dumps or BigQuery, which reach back to
-> **2015-02-19**.
-
-**Results**
-
-| Parameter | Options | Notes |
-|---|---|---|
-| `maxrecords` | up to **250** | default 75 |
-| `sort` | `datedesc`, `dateasc`, `tonedesc`, `toneasc`, `hybridrel` | |
-| `format` | `html`, `csv`, `json`, `jsonp`, `rss`, `jsonfeed` | |
-| `mode` | `artlist`, `timelinevol`, `imagecollage`, `tonechart`, … | 15+ modes |
-
-### What GDELT does *not* filter on
-
-- 🔴 **Bias or stance** — no such field exists.
-- 🔴 **Paywall status.**
-- 🔴 **Article length or body presence** — GKG carries no body at all.
-- 🔴 **Outlet country on the dump route** — all our 173,388 stories carry `countries: ["?"]`.
+Bias or stance (no such field), paywall status, body text (GKG carries none), and — on the
+dump route only — **publisher country**, so all our stories carry `countries: ["?"]`.
 
 ---
 
-## Event Registry (newsapi.ai)
+## Event Registry
 
-The richest filter set of any provider surveyed, and the only one with first-class
-*negation* of every dimension. Applies to `QueryArticles` / `QueryArticlesIter`.
+A genuinely rich filter set. **We use four of them.**
 
-### Positive conditions
+```python
+QueryArticlesIter(
+    sourceLocationUri = germany_uri,   # publisher located in Germany
+    lang              = "deu",
+    dateStart, dateEnd,                # 30-day window on the free tier
+    sourceUri         = ...            # optional, specific outlets
+)
+```
 
-| Parameter | What it selects |
+Plus `allowUseOfArchive=False` as a guard, so a mistyped date can never trigger the
+5-tokens-per-year archive charge.
+
+### Three we should be using and are not
+
+| filter | what it would fix |
 |---|---|
-| `keywords` | articles mentioning keyword(s)/phrase(s); single string or list |
-| `keywordsLoc` | **where** to search: `body` (default), `title`, `body,title` |
-| `keywordSearchMode` | `phrase` (default), `exact`, `simple` |
-| `conceptUri` | articles mentioning a **concept** (entity/topic URI) |
-| `categoryUri` | articles assigned to a category |
-| `sourceUri` | specific news sources |
-| `sourceLocationUri` | 🟢 **sources located in a geography** — the correct country filter |
-| `sourceGroupUri` | sources in a named source group |
-| `authorUri` | specific authors |
-| `locationUri` | articles about an **event at** a location (distinct from source location) |
-| `lang` | article language(s) — we use `deu` |
-| `dateStart` / `dateEnd` | publication date range |
-| `dateMentionStart` / `dateMentionEnd` | articles that *mention* a date in range |
+| `startSourceRankPercentile` | our pull is dominated by finance wires and the Ippen local network — the material that clusters worst. A percentile floor drops them at the API. |
+| `eventFilter=skipArticlesWithoutEvent` | 83.5% of what we pulled has no `eventUri` and became a singleton. ⚠️ but this also excludes the wire stories ER wrongly flags as duplicates, which is the material we most want. |
+| `conceptUri` / `categoryUri` | we collected **zero topics**, because the default `returnInfo` excludes concepts and categories. A scraper defect, not a provider limit. |
 
-> **`sourceLocationUri` vs `locationUri`** is the distinction worth internalising: the
-> first is where the *publisher* sits, the second is where the *event* happened. For a
-> German-media dataset you want `sourceLocationUri`; for German *news coverage* wherever
-> published, `locationUri`.
+Also available and unused: `keywords` (+ `keywordsLoc` to search title vs body),
+`authorUri`, `locationUri` (where the *event* happened, as opposed to where the publisher
+is), `dataType` to exclude press releases, and an `ignore*` negation of every single filter.
 
-### Negative conditions
+⚠️ **`minSentiment`/`maxSentiment` silently restrict results to English.** Setting either on
+a German pull returns nothing useful.
 
-Every positive filter has an `ignore*` twin: `ignoreKeywords`, `ignoreConceptUri`,
-`ignoreCategoryUri`, `ignoreSourceUri`, `ignoreSourceLocationUri`, `ignoreSourceGroupUri`,
-`ignoreAuthorUri`, `ignoreLocationUri`, `ignoreLang`.
+### Cost
 
-### Quality and dedup filters
+2,000 non-renewing free tokens, **461 left**. 1 token per 100-article page. 30-day recency
+window; the archive costs 5 tokens *per searched year*.
 
-| Parameter | Options | Why it matters here |
-|---|---|---|
-| `isDuplicateFilter` | `skipDuplicates` / `keepOnlyDuplicates` / `keepAll` | 🔴 **the critical one** — see below |
-| `hasDuplicateFilter` | `skipHasDuplicates` / `keepOnlyHasDuplicates` / `keepAll` | selects the *originals* of copied articles |
-| `eventFilter` | `skipArticlesWithoutEvent` / `keepOnlyArticlesWithoutEvent` / `keepAll` | 🟢 would let us pull only clustered articles |
-| `startSourceRankPercentile` / `endSourceRankPercentile` | 0–100 | 🟢 **drop the low-quality long tail** — directly addresses our finance-wire skew |
-| `minSentiment` / `maxSentiment` | −1…1 | ⚠️ **silently forces English-only** |
-| `dataType` | `news` (default), `pr`, `blog` | exclude press releases |
+### What Event Registry cannot filter on
 
-> ⚠️ **`minSentiment`/`maxSentiment` restrict results to English.** Setting either one on a
-> German pull would silently return nothing useful.
-
-### Three filters we should be using and are not
-
-1. **`startSourceRankPercentile`** — our pull is dominated by finance wires
-   (wallstreet-online.de 4,249 articles) and the Ippen local network, which cluster worst
-   and carry the least editorial signal. A percentile floor would remove them at the API.
-2. **`eventFilter=skipArticlesWithoutEvent`** — 83.5% of what we pulled has no `eventUri`
-   and became a singleton. This filter would have spent tokens only on clustered articles.
-   (Caveat: it would also have excluded the wire stories ER wrongly marks as duplicates —
-   which is exactly the material we most want. Use knowingly.)
-3. **`conceptUri` / `categoryUri`** — our pull collected **no topics at all**, because the
-   default `returnInfo` excludes `concepts` and `categories`. This is a scraper defect, not
-   a provider limit.
-
-### Cost model
-
-| | |
-|---|---|
-| Free allowance | **2,000 non-renewing tokens** (~461 remaining) |
-| Article pull | 1 token per 100-article page |
-| Recency window | **30 days** |
-| Archive access | **5 tokens per searched year** — guarded off via `allowUseOfArchive=False` |
-
-### What Event Registry does *not* filter on
-
-- 🔴 **Bias or stance** — no such field.
-- 🔴 **Image presence** (images are returned at 98.6% but are not a query dimension).
-- 🔴 **Paywall status** as a filter (`private: true` appears in results only).
+Bias or stance, image presence, paywall status (`private: true` appears in results but is
+not queryable).

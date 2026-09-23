@@ -51,48 +51,20 @@ the clustering side.
 
 ## 2. The list
 
-86 terms in 8 groups.
+86 terms. ⚠️ marks the four that returned nothing (§3).
 
-### Government, parties and institutions (17)
-`AfD` · `Bundeskanzler Merz` · `Bundesrat` · `Bundesregierung` · `Bundestag` ·
-`Bundesverfassungsgericht` · `CDU` · `CSU` · `Die Linke` · `FDP` · `Friedrich Merz` ·
-`Grüne` · `Koalition Deutschland` · `Lars Klingbeil` · `Merz` · `Robert Habeck` · `SPD`
+| group | n | terms |
+|---|---|---|
+| **Government, parties, institutions** | 17 | `AfD` · `Bundeskanzler Merz` · `Bundesrat` · `Bundesregierung` · `Bundestag` · `Bundesverfassungsgericht` · `CDU` · `CSU` · `Die Linke` · `FDP` · `Friedrich Merz` · `Grüne` · `Koalition Deutschland` · `Lars Klingbeil` · `Merz` · `Robert Habeck` · `SPD` |
+| **Public policy and legislation** | 8 | `Asylpolitik Deutschland` · `Bürgergeld` · `Heizungsgesetz` · `Klimapolitik Deutschland` · `Migrationspolitik Deutschland` · `Mindestlohn Deutschland` · `Rentenreform Deutschland` · `Wehrpflicht Deutschland` |
+| **Recurring national events** | 5 | `Bundestagswahl` ⚠️ · `Energiekrise Deutschland` · `Inflation Deutschland` · `Landtagswahl` · `Streik Deutschland` |
+| **EU and international** | 5 | `EU-Kommission` · `Emmanuel Macron` · `Europäische Union` · `Europäisches Parlament` · `Frankreich` ⚠️ |
+| **Companies and industry** | 11 | `Allianz` · `Audi` · `BASF` · `BMW` · `Bayer AG` · `Bosch` · `Deutsche Bank` · `Mercedes-Benz` · `SAP` · `Siemens` · `Volkswagen` |
+| **Cities** | 8 | `Berlin` · `Dresden` · `Frankfurt` · `Hamburg` · `Köln` · `Leipzig` · `München` · `Stuttgart` |
+| **Sport** | 8 | `Bayern München` · `Borussia Dortmund` · `Bundesliga` · `DFB` · `FIFA Deutschland` · `Olympia Deutschland` · `RB Leipzig` · `deutsche Nationalmannschaft` |
+| **US, geopolitics, tech, climate** | 24 | `Brandmauer` · `Bundeswehr` · `E-Auto` · `EZB` · `Energiewende` · `German economy` · `KI` · `Kreml` · `Künstliche Intelligenz` · `NATO summit Germany` · `Republikaner` ⚠️ · `Selenskyj` · `Strompreis` ⚠️ · `Trump` · `US-Präsident` · `US-Wahl` · `Ukraine` · `Weißes Haus` · `climate change Germany` · `data protection Germany` · `interest rate Germany` · `recession Germany` · `semiconductor Germany` · `tariffs Germany` |
 
-### Public policy and legislation (8)
-`Asylpolitik Deutschland` · `Bürgergeld` · `Heizungsgesetz` · `Klimapolitik Deutschland` ·
-`Migrationspolitik Deutschland` · `Mindestlohn Deutschland` · `Rentenreform Deutschland` ·
-`Wehrpflicht Deutschland`
-
-### Recurring national events (5)
-`Bundestagswahl` ⚠️ · `Energiekrise Deutschland` · `Inflation Deutschland` ·
-`Landtagswahl` · `Streik Deutschland`
-
-### EU and international (5)
-`EU-Kommission` · `Emmanuel Macron` · `Europäische Union` · `Europäisches Parlament` ·
-`Frankreich` ⚠️
-
-### Companies and industry (11)
-`Allianz` · `Audi` · `BASF` · `BMW` · `Bayer AG` · `Bosch` · `Deutsche Bank` ·
-`Mercedes-Benz` · `SAP` · `Siemens` · `Volkswagen`
-
-### Cities (8)
-`Berlin` · `Dresden` · `Frankfurt` · `Hamburg` · `Köln` · `Leipzig` · `München` ·
-`Stuttgart`
-
-### Sport (8)
-`Bayern München` · `Borussia Dortmund` · `Bundesliga` · `DFB` · `FIFA Deutschland` ·
-`Olympia Deutschland` · `RB Leipzig` · `deutsche Nationalmannschaft`
-
-### Earlier seed bank — US, geopolitics, tech, climate (24)
-`Trump` · `US-Wahl` · `Republikaner` ⚠️ · `Weißes Haus` · `US-Präsident` · `Ukraine` ·
-`Selenskyj` · `Kreml` · `Bundeswehr` · `NATO summit Germany` · `interest rate Germany` ·
-`German economy` · `EZB` · `tariffs Germany` · `recession Germany` ·
-`Künstliche Intelligenz` · `KI` · `semiconductor Germany` · `data protection Germany` ·
-`Energiewende` · `climate change Germany` · `E-Auto` · `Strompreis` ⚠️ · `Brandmauer`
-
-⚠️ = returned **zero** results (see below).
-
----
+The mixed languages are deliberate, not sloppiness — see §1.
 
 ## 3. How the terms performed
 

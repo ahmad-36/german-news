@@ -8,6 +8,11 @@ stage is one you would have chosen.
 
 ## 1. The pipeline
 
+![The pipeline](../assets/pipeline.svg)
+
+<details>
+<summary>Mermaid source (editable — renders on GitHub, needs an extension in VS Code)</summary>
+
 ```mermaid
 flowchart TB
     A1["<b>① COLLECTION</b><br/>crawl / API pull<br/>by date · topic · keyword"]
@@ -41,6 +46,8 @@ flowchart TB
     class X1,X2 warn
     class A1,B1,C1,D1,D2,E0 stage
 ```
+
+</details>
 
 Two things are worth naming explicitly because they are where the providers go wrong:
 
