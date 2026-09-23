@@ -10,41 +10,36 @@ stage is one you would have chosen.
 
 ```mermaid
 flowchart TB
-    subgraph S1["① COLLECTION"]
-        direction LR
-        A1["crawl / API pull<br/><i>by date · topic · keyword</i>"] --> A2["raw articles<br/><i>url · headline · body · image</i>"]
-    end
+    A1["<b>① COLLECTION</b><br/>crawl / API pull<br/>by date · topic · keyword"]
+    A2["raw articles<br/>url · headline · body · image"]
+    B1["<b>② FILTERING</b><br/>language · country · topic"]
+    C1["<b>③ TOPIC CLUSTERING</b><br/>group into broad subject areas<br/>e.g. 'Ukraine war', 'German energy policy'"]
+    D1["<b>④ ARTICLE CLUSTERING</b> within topic<br/>group into same-event stories"]
+    D2["<b>④b</b> partition each story by<br/>stance · country · language"]
+    E0["<b>⑤ DOWNSTREAM TASKS</b>"]
+    E1["1 · article summarisation"]
+    E2["2 · topic summarisation"]
+    E3["3 · stance summary"]
+    E4["4 · stance comparison"]
+    E5["5 · stance prediction"]
 
-    subgraph S2["② FILTERING"]
-        direction LR
-        B1["language<br/><i>de / en / …</i>"] --> B2["country<br/><i>of publisher</i>"] --> B3["topic<br/><i>politics, economy, …</i>"]
-    end
+    X1["⚠ Ground News TRANSLATES here,<br/>then clusters the translation"]
+    X2["⚠ labels attach here, but at<br/>OUTLET level, not article level"]
 
-    subgraph S3["③ TOPIC CLUSTERING"]
-        direction LR
-        C1["group articles into<br/><b>broad subject areas</b>"] --> C2["e.g. 'Ukraine war',<br/>'German energy policy'"]
-    end
+    A1 --> A2 --> B1 --> C1 --> D1 --> D2 --> E0
+    E0 --> E1
+    E0 --> E2
+    E0 --> E3
+    E0 --> E4
+    E0 --> E5
 
-    subgraph S4["④ ARTICLE CLUSTERING <i>within</i> topic"]
-        direction LR
-        D1["group into<br/><b>same-event stories</b>"] --> D2["then partition by<br/><i>stance · country · language</i>"]
-    end
+    X1 -.-> D1
+    X2 -.-> D2
 
-    subgraph S5["⑤ DOWNSTREAM TASKS"]
-        direction LR
-        E1["article<br/>summarisation"]
-        E2["topic<br/>summarisation"]
-        E3["stance<br/>summary"]
-        E4["stance<br/>comparison"]
-        E5["stance<br/>prediction"]
-    end
-
-    S1 --> S2 --> S3 --> S4 --> S5
-
-    X1["⚠ translation<br/>inserted here by Ground News"]:::warn -.-> S4
-    X2["⚠ labels attach here,<br/>at OUTLET level not article level"]:::warn -.-> S4
-
-    classDef warn fill:#fff4e5,stroke:#d97706,color:#7c2d12,stroke-width:2px;
+    classDef warn fill:#fff4e5,stroke:#d97706,color:#7c2d12,stroke-width:2px
+    classDef stage fill:#eef2ff,stroke:#4f46e5,color:#1e1b4b,stroke-width:2px
+    class X1,X2 warn
+    class A1,B1,C1,D1,D2,E0 stage
 ```
 
 Two things are worth naming explicitly because they are where the providers go wrong:
