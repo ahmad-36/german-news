@@ -21,9 +21,10 @@ the written analysis; the collection code lives in one repo per source:
 | [news-explorer](../news-explorer) | unified format + Streamlit UI (cross-source) |
 
 All five sit side by side under `news/`, each an independent git repository — `news/` is
-a plain directory, not a repo, so the histories stay separate. They share one data root
-via `NEWS_DATA_DIR` (`~/news-data`, outside the tree). They were split out of a single
-monolithic `news` repo in Sept 2026, which is retired at `archive/news`.
+a plain directory, not a repo, so the histories stay separate. Each collector repo carries
+the dataset it produces in its own gitignored `data/`, and reads the others' from the
+sibling repo automatically. They were split out of a single monolithic `news` repo in
+Sept 2026, which is retired at `archive/news`.
 
 ---
 
