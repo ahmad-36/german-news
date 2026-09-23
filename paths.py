@@ -94,9 +94,26 @@ QBIAS_DIR_ENV = "QBIAS_DIR"
 
 
 def qbias_dir() -> str:
-    """Root of the Qbias checkout: $QBIAS_DIR, else ../qbias/Qbias."""
-    return os.path.abspath(os.environ.get(QBIAS_DIR_ENV)
-                           or os.path.join(os.path.dirname(REPO_ROOT), "qbias", "Qbias"))
+    """Root of the Qbias checkout (holds the AllSides crawl + article bodies).
+
+    $QBIAS_DIR wins. Otherwise walk up from this repo looking for qbias/Qbias,
+    rather than assuming a fixed depth: these repos sit one level deeper than
+    they used to (~/news/<repo> rather than ~/<repo>), and a hard-coded
+    os.path.dirname(REPO_ROOT) silently resolved to the wrong place after the
+    move. Falls back to ~/qbias/Qbias so the path is still well-defined when
+    nothing is found."""
+    env = os.environ.get(QBIAS_DIR_ENV)
+    if env:
+        return os.path.abspath(env)
+    here = REPO_ROOT
+    for _ in range(4):
+        here = os.path.dirname(here)
+        if not here or here == os.sep:
+            break
+        cand = os.path.join(here, "qbias", "Qbias")
+        if os.path.isdir(cand):
+            return os.path.abspath(cand)
+    return os.path.abspath(os.path.join(os.path.expanduser("~"), "qbias", "Qbias"))
 
 
 def allsides_crawl() -> str:

@@ -2,7 +2,8 @@
 
 Event Registry (newsapi.ai) pull for full-text German articles.
 
-Split out of the former monolithic `news` repo (Sept 2026). Sister repos:
+Lives in `news/` alongside its sister repos, each an independent git repo. Split out of
+the former monolithic `news` repo (Sept 2026, now retired to `archive/news`). Sisters:
 [news-gdelt](../news-gdelt), [news-ground-news](../news-ground-news),
 [news-explorer](../news-explorer).
 
