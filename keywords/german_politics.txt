@@ -1,0 +1,41 @@
+# German politics keywords - the political subset
+#
+# One term per line; '#' starts a comment. Usable directly as
+#   gdelt_dump_pull.py --keywords-file <this file>
+# ZERO = returned no Ground News search results in the Aug 2026 run.
+
+# --- Government, parties and institutions ---
+AfD
+Bundeskanzler Merz
+Bundesrat
+Bundesregierung
+Bundestag
+Bundesverfassungsgericht
+CDU
+CSU
+Die Linke
+FDP
+Friedrich Merz
+Grüne
+Koalition Deutschland
+Lars Klingbeil
+Merz
+Robert Habeck
+SPD
+
+# --- Public policy and legislation ---
+Asylpolitik Deutschland
+Bürgergeld
+Heizungsgesetz
+Klimapolitik Deutschland
+Migrationspolitik Deutschland
+Mindestlohn Deutschland
+Rentenreform Deutschland
+Wehrpflicht Deutschland
+
+# --- Recurring national events ---
+Bundestagswahl   # ZERO
+Energiekrise Deutschland
+Inflation Deutschland
+Landtagswahl
+Streik Deutschland

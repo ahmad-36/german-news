@@ -1,0 +1,107 @@
+# German news discovery keywords - full list
+#
+# One term per line; '#' starts a comment. Usable directly as
+#   gdelt_dump_pull.py --keywords-file <this file>
+# ZERO = returned no Ground News search results in the Aug 2026 run.
+
+# --- Government, parties and institutions ---
+AfD
+Bundeskanzler Merz
+Bundesrat
+Bundesregierung
+Bundestag
+Bundesverfassungsgericht
+CDU
+CSU
+Die Linke
+FDP
+Friedrich Merz
+Grüne
+Koalition Deutschland
+Lars Klingbeil
+Merz
+Robert Habeck
+SPD
+
+# --- Public policy and legislation ---
+Asylpolitik Deutschland
+Bürgergeld
+Heizungsgesetz
+Klimapolitik Deutschland
+Migrationspolitik Deutschland
+Mindestlohn Deutschland
+Rentenreform Deutschland
+Wehrpflicht Deutschland
+
+# --- Recurring national events ---
+Bundestagswahl   # ZERO
+Energiekrise Deutschland
+Inflation Deutschland
+Landtagswahl
+Streik Deutschland
+
+# --- EU and international ---
+EU-Kommission
+Emmanuel Macron
+Europäische Union
+Europäisches Parlament
+Frankreich   # ZERO
+
+# --- Companies and industry ---
+Allianz
+Audi
+BASF
+BMW
+Bayer AG
+Bosch
+Deutsche Bank
+Mercedes-Benz
+SAP
+Siemens
+Volkswagen
+
+# --- Cities ---
+Berlin
+Dresden
+Frankfurt
+Hamburg
+Köln
+Leipzig
+München
+Stuttgart
+
+# --- Sport ---
+Bayern München
+Borussia Dortmund
+Bundesliga
+DFB
+FIFA Deutschland
+Olympia Deutschland
+RB Leipzig
+deutsche Nationalmannschaft
+
+# --- Earlier seed bank (US/geopolitics/tech/climate) ---
+Brandmauer
+Bundeswehr
+E-Auto
+EZB
+Energiewende
+German economy
+KI
+Kreml
+Künstliche Intelligenz
+NATO summit Germany
+Republikaner   # ZERO
+Selenskyj
+Strompreis   # ZERO
+Trump
+US-Präsident
+US-Wahl
+Ukraine
+Weißes Haus
+climate change Germany
+data protection Germany
+interest rate Germany
+recession Germany
+semiconductor Germany
+tariffs Germany
