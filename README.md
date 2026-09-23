@@ -2,7 +2,8 @@
 
 Ground News scraper, the German discovery pipeline, and the keyword list.
 
-Split out of the former monolithic `news` repo (Sept 2026). Sister repos:
+Lives in `news/` alongside its sister repos, each an independent git repo. Split out of
+the former monolithic `news` repo (Sept 2026, now retired to `archive/news`). Sisters:
 [news-gdelt](../news-gdelt), [news-eventregistry](../news-eventregistry),
 [news-explorer](../news-explorer), and
 [muws-allsides-dataset](https://github.com/muws-workshop/muws-allsides-dataset).
