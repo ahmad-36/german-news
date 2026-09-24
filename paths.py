@@ -155,15 +155,42 @@ def qbias_dir() -> str:
     return os.path.abspath(os.path.join(os.path.expanduser("~"), "qbias", "Qbias"))
 
 
+#: the AllSides repo, a sibling of this one under news/
+ALLSIDES_REPO = "muws-allsides-dataset"
+ALLSIDES_DIR_ENV = "ALLSIDES_DIR"
+
+
+def allsides_dir() -> str:
+    """The AllSides repo's output/ directory — crawl JSONL, bodies and images.
+
+    $ALLSIDES_DIR wins, then the sibling repo. Falls back to the old Qbias
+    location, where this data lived before Sept 2026, so an older checkout
+    still resolves."""
+    env = os.environ.get(ALLSIDES_DIR_ENV)
+    if env:
+        return os.path.abspath(env)
+    sibling = os.path.join(os.path.dirname(REPO_ROOT), ALLSIDES_REPO, "output")
+    if os.path.isdir(sibling):
+        return sibling
+    return os.path.join(qbias_dir(), "allsides_crawl", "output")
+
+
 def allsides_crawl() -> str:
-    """Newest AllSides crawl JSONL in the Qbias checkout ("" if absent)."""
-    hits = sorted(glob.glob(os.path.join(qbias_dir(), "allsides_crawl", "output", "allsides_*.jsonl")))
-    return hits[-1] if hits else ""
+    """Newest AllSides crawl JSONL ("" if absent).
+
+    Deduplicates by real path first: the repo carries a compatibility symlink
+    (allsides_Jan2025_May2026_combined.jsonl) pointing at the real file, and
+    globbing would otherwise return the same dataset twice."""
+    hits = glob.glob(os.path.join(allsides_dir(), "allsides_*.jsonl"))
+    real = {os.path.realpath(h): h for h in hits}
+    return sorted(real.values())[-1] if real else ""
 
 
 def allsides_bodies_dir() -> str:
-    """Qbias multi_source_scrape per-domain body texts, joined onto AllSides
-    articles by URL."""
+    """Per-domain article body texts, joined onto AllSides articles by URL."""
+    d = os.path.join(allsides_dir(), "full_articles")
+    if os.path.isdir(d):
+        return d
     return os.path.join(qbias_dir(), "multi_source_scrape", "output", "per_domain")
 
 
