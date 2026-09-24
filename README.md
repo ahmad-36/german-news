@@ -104,11 +104,18 @@ corpus.
 [`keywords/`](keywords/) is the German seed-term list, shared verbatim with
 [news-gdelt](../news-gdelt) where it doubles as a `--keywords-file` filter.
 
-| file | terms |
+| file | contents |
 |---|---|
-| `german_politics.txt` | 30 — parties, institutions, policy, recurring events |
-| `german_all.txt` | 86 — plus companies, cities, sport, EU, US/geopolitics |
+| `ground_news_interests.txt` | the 17 `/interest/` topic pages this crawl walks |
+| `german_politics.txt` | 30 terms — parties, institutions, policy, recurring events |
+| `german_all.txt` | 86 terms — plus companies, cities, sport, EU, US/geopolitics |
 | `german_keywords.json` | machine-readable, with measured per-term yield |
+
+**Three things decide what ends up in the dataset**, and only the second is a keyword list:
+the 17 topic pages plus `/top` and `/blindspot` (the default crawl, no keyword involved),
+the 86 search terms, and the 60-name German publisher register in `germanlib.py` that
+decides what counts as German. Full breakdown:
+[keywords.md §1](../news-source-survey/docs/keywords.md#1-what-ground-news-is-actually-crawled-with).
 
 **The empirical rule behind the list:** proper nouns survive Ground News' English
 translation and find hits in German (`Bundeswehr` → 10 events); generic/abstract German
