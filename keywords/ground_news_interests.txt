@@ -1,0 +1,29 @@
+# Ground News /interest/<slug> topic pages walked on every crawl.
+#
+# SOURCE OF TRUTH is LISTING_PAGES in scraper.py — this file mirrors it for
+# reference and for extending the list. If you change one, change the other.
+#
+# The crawl also walks three generic listings that take no slug:
+#   ground.news/   ground.news/top   ground.news/blindspot
+#
+# ⚠️ = the bare slug below never appears in the scraped data; only a
+#      hash-suffixed variant does (shown in the comment). Either the bare form
+#      redirects, or that topic feed is silently returning nothing. Unverified.
+
+us-politics                 # ⚠️ data only ever has us-politics_3c3c3c
+ai
+business-and-markets
+environment-and-climate
+health-and-medicine
+international
+tech
+science
+education_fb8947            # note: this one IS suffixed in the crawl list
+sports
+entertainment
+world                       # ⚠️ never appears in the data in any form
+crime                       # ⚠️ data only ever has crime_a31cae
+economy
+energy                      # ⚠️ data only ever has energy_f044a6
+law                         # ⚠️ data only ever has law_086880
+media                       # ⚠️ data only ever has media_5b9bd3
