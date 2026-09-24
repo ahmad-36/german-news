@@ -14,7 +14,7 @@ the written analysis; the collection code lives in one repo per source:
 
 | repo | what it collects |
 |---|---|
-| [muws-allsides-dataset](https://github.com/muws-workshop/muws-allsides-dataset) | AllSides |
+| [muws-allsides-dataset](../muws-allsides-dataset) | AllSides — crawler, per-domain scrapers, and the crawl |
 | [news-gdelt](../news-gdelt) | GDELT — collection, clustering, enrichment |
 | [news-ground-news](../news-ground-news) | Ground News — scraper, discovery, keyword list |
 | [news-eventregistry](../news-eventregistry) | Event Registry |
@@ -38,6 +38,7 @@ Sept 2026, which is retired at `archive/news`.
 | [docs/tasks.md](docs/tasks.md) | The five downstream tasks, defined separately |
 | [docs/stance_labels.md](docs/stance_labels.md) | Where stance labels come from, and our experiments on them |
 | [docs/translation_problem.md](docs/translation_problem.md) | Ground News mistranslation → wrong clustering (paper-worthy) |
+| [docs/future_directions.md](docs/future_directions.md) | Candidate tasks and why each is or isn't pursued (bias classification: not pursued) |
 | [docs/api_filters.md](docs/api_filters.md) | Exactly which filters GDELT and Event Registry expose |
 | [docs/problems.md](docs/problems.md) | **Every known problem in one register**, with status |
 | [docs/other_sources.md](docs/other_sources.md) | Nine providers beyond the four |
@@ -50,7 +51,11 @@ Sept 2026, which is retired at `archive/news`.
 
 **1. AllSides and Ground News stance labels are outlet-level, not article-level.**
 Ground News states it outright: *"This rating does not measure the bias of specific news
-articles. The analysis is done at the publication level."* In our AllSides eval set, all
+articles. The analysis is done at the publication level."* AllSides' own
+[audit methodology](https://www.allsides.com/sites/default/files/AllSides-Media-Bias-Audit_Example-March-2022.pdf)
+says the same thing. It samples 5 to 10 headlines, or the top article on a couple of major
+stories, and averages the survey responses into **one overall score for the
+publication**. In our AllSides eval set, all
 15 outlets have **100% label purity** — every Fox News article is `right`, every Hill
 article is `center`. Training a stance classifier on this predicts the *publisher*, not
 the article. A bag of bigrams reaches **94.6%** on a random split and **27.3%** when test
@@ -59,9 +64,18 @@ set: [docs/stance_labels.md](docs/stance_labels.md).
 
 **2. Ground News labels are not GPT-generated — but a third of them are contested.**
 The bias ratings are aggregated from three human rating agencies (Media Bias/Fact Check,
-Ad Fontes Media, AllSides). Across 28,833 rated articles the three raters **disagree on
-32.1%**. What *is* machine-generated on a Ground News page are the per-stance summaries,
-the `bias_comparison` paragraph and the `generated_headline` — not the labels.
+Ad Fontes Media, AllSides). All three are US organisations rating outlets on the American
+left–right axis. Across 28,833 rated articles the three raters **disagree on 32.1%**.
+What *is* machine-generated on a Ground News page are the per-stance summaries and the
+`bias_comparison` paragraph (GPT: Ground News stores them in an object named
+`chatGptSummaries`), plus the `generated_headline`. The labels are not. In short:
+
+- **Bias labels** — human, outlet-level, averaged from AllSides / Ad Fontes / MBFC,
+  US-framed.
+- **Summaries and bias comparison** — GPT, story-level, partial coverage (441 of 894
+  stories have a side summary, 209 have all three).
+- **Clustering** — Ground News' own, run on English translations, with the
+  entity-loss error mode in point 3.
 
 **3. Ground News translates before it clusters, and the translation destroys entities.**
 41% of its articles (18,969 / 46,030) are machine-translated into English, and clustering

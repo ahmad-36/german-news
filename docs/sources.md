@@ -9,7 +9,7 @@ Every limit noted here also appears, with status, in the [problems register](pro
 ## AllSides
 
 > US political news, presented as left/center/right triplets per story.
-> Scraper: [`muws-workshop/muws-allsides-dataset`](https://github.com/muws-workshop/muws-allsides-dataset)
+> Repo: [`muws-allsides-dataset`](../../muws-allsides-dataset) — scraper and data, `output/`
 
 ### How scraping works
 
@@ -100,8 +100,8 @@ impersonation to get past bot detection; no browser needed.
 | **Body text** | **0%** — headline + dek only |
 | **Images** | **none** — no image field exists in the record |
 | Stance label | 62.6% (28,833); **37.4% is the literal string `unknown`** |
-| Per-stance summaries | 49.3% (441/894) — **LLM-generated** |
-| `bias_comparison` paragraph | **LLM-generated** |
+| Per-stance summaries | 49.3% (441/894; all three sides 209) — **GPT-generated** |
+| `bias_comparison` paragraph | 499/894 — **GPT-generated** |
 | Blindspot flag | 89 stories |
 | Topics | 99.8%, human-readable |
 | Paywall flag | 5,270 articles flagged |
@@ -112,11 +112,12 @@ impersonation to get past bot detection; no browser needed.
 - 🔴 **Tiny** — 894 stories in ~14 months (~2/day). A label source, not a corpus.
 - 🔴 **No body text and no images at all** — headline + dek only.
 - 🔴 **Only 12.1% German.**
-- 🔴 **Labels are per outlet and contested** — averaged from MBFC, Ad Fontes and AllSides,
-  which disagree on **32.1%**. 37.4% are the literal string `unknown`, concentrated on the
-  German tail.
-- ⚠️ **Summaries are LLM-generated** (`summary_*`, `bias_comparison`, `generated_headline`).
-  The labels are not. `summary_right` is often empty when left and center are populated.
+- 🔴 **Labels are per outlet, US-framed and contested** — averaged from MBFC, Ad Fontes and
+  AllSides (all US organisations, American left–right axis), which disagree on **32.1%**.
+  37.4% are the literal string `unknown`, concentrated on the German tail.
+- ⚠️ **Summaries are GPT-generated** (`summary_*` and `bias_comparison` come from Ground
+  News' `chatGptSummaries` object; `generated_headline` is also LLM-written). The labels
+  are not. `summary_right` is often empty when left and center are populated.
 - ⚠️ **Translation runs before clustering** and loses entities.
 - ⚠️ Language tags are unreliable (Luxembourgish tagged `de`); factuality field is 0% populated.
 

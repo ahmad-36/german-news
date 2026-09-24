@@ -11,7 +11,7 @@ the register, so nothing gets lost between them.
 
 | # | Problem | Status | Detail |
 |---|---|---|---|
-| 1 | **Stance labels are per outlet, not per article.** No provider surveyed rates individual articles. Ground News says so outright: *"The analysis is done at the publication level."* All 15 AllSides outlets have 100% label purity, so the ground truth **is** publisher identity. This makes stance prediction a mislabelled task. | 🔴 | [stance_labels.md](stance_labels.md) |
+| 1 | **Stance labels are per outlet, not per article.** No provider surveyed rates individual articles. Ground News says so outright: *"The analysis is done at the publication level."* AllSides' audit methodology samples 5–10 headlines and averages them into one overall score for the publication. All 15 AllSides outlets have 100% label purity, so the ground truth **is** publisher identity. This makes stance prediction a mislabelled task. | 🔴 | [stance_labels.md](stance_labels.md) |
 | 2 | **Event Registry data cannot be published.** Its ToS forbid sharing or sublicensing and claim even structured metadata. This is the constraint on any public release. | 🔴 | [sources.md](sources.md#event-registry-newsapiai) |
 | 3 | **No single provider has bodies + labels + German.** GDELT has structure, Event Registry has text, Ground News has labels, AllSides has neither German nor volume. Everything needs a cross-provider join on the 56 shared domains. | 🔴 | [sources.md](sources.md#cross-provider-joins) |
 

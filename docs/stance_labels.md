@@ -30,6 +30,29 @@ Four methods, in descending order of rigour:
    calls this "the lowest level of bias verification".
 4. **Third-party data** — rarely, from universities and researchers.
 
+**AllSides' own audit methodology confirms the outlet is the unit.** The
+[AllSides Media Bias Audit example report (March 2022)](https://www.allsides.com/sites/default/files/AllSides-Media-Bias-Audit_Example-March-2022.pdf)
+is a real audit with the outlet's identity redacted. It shows that article-level content
+is only a *sample* used to produce one outlet-level number:
+
+- **Sampling.** A Blind Bias Survey uses a small sample of content. One method takes the
+  top 5 homepage headlines on each of two days, 10 in total. The other takes the outlet's
+  most prominent article on each of two major stories, again on two days, showing the
+  headline plus the first 50–100 words.
+- **The outlet is what gets rated.** Respondents see an outlet's content together on one
+  page and give *"an overall bias rating for the content"* on an 11-point scale. They
+  are not asked to rate each headline separately.
+- **One number per outlet.** Responses are averaged within each self-reported bias group
+  and then across all groups into *"an overall weighted average"*, rescaled to −9…+9. The
+  written and video ratings are averaged again into a single final rating: *"the average
+  of both the written and video ratings."*
+- **US-framed by design.** *"The AllSides patented media bias rating system reflects the
+  average judgment of the American people."*
+
+So 5–10 sampled headlines become one score, and every article the outlet publishes
+inherits it. (The URL returns 403 to scripts; we read the copy archived on the
+[Wayback Machine](https://web.archive.org/web/2024/https://www.allsides.com/sites/default/files/AllSides-Media-Bias-Audit_Example-March-2022.pdf).)
+
 So: **human, a mix of experts and lay people by design, and assigned to the publication.**
 AllSides does sometimes rate a source's sections separately, and sometimes separates news
 from opinion — but the unit is still a section, never an article.
@@ -56,8 +79,13 @@ label set is therefore a contested rating presented as a single value.
 
 **What *is* machine-generated on a Ground News page:** the per-stance summaries
 (`summary_left` / `summary_center` / `summary_right`), the `bias_comparison` paragraph, and
-`generated_headline`. Those are LLM outputs. **The bias labels are not.** This is worth
-stating because the opposite is often assumed.
+`generated_headline`. Those are LLM outputs. The summaries and `bias_comparison` are GPT:
+the page payload stores them in an object named `chatGptSummaries`. **The bias labels are
+not.** This is worth stating because the opposite is often assumed.
+
+The labels are also **US-framed**. All three agencies are US organisations that place
+outlets on the American left–right axis, so a German outlet's label is its position on a
+US spectrum.
 
 ---
 

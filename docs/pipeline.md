@@ -98,7 +98,7 @@ document how, and it is not recoverable from the data.
 | ③ **Topic clustering** | Done, human-readable tags (`Politics`, `Europe`, `Germany`), 99.8% coverage. **But tagging runs on the translated text** and inherits its errors — one Bundesliga goalkeeper cluster is tagged `Mohammed Bin Salman`. |
 | ④ **Article clustering** | Done by Ground News' own pipeline. **Articles are machine-translated into English first** (41% of all articles, 18,969/46,030, carry an `original_title`), and clustering runs on the translation. Median 16 outlets per story — the best cluster breadth of any provider here. The mechanism beyond "editorial + vendor pipeline" is **unknown**. |
 | ④b **Stance partition** | Per-source `source_bias` on a 7-point scale. Aggregated from **three** rating agencies — Media Bias/Fact Check (25,435 articles), Ad Fontes Media (19,034), AllSides (8,330) — averaged where they differ. **They disagree on 32.1% of articles.** All three rate *outlets*, never articles. 37.4% of labels are the literal string `unknown`, concentrated on the small non-English outlets that make up the German tail. |
-| ⑤ **Downstream (pre-computed)** | Ground News ships LLM-generated `summary_left` / `summary_center` / `summary_right` (49.3% of stories), a `bias_comparison` paragraph, and a `generated_headline`. These are *outputs* of tasks 3 and 4 — useful as weak supervision or as a baseline to beat, **not** as ground truth. |
+| ⑤ **Downstream (pre-computed)** | Ground News ships GPT-generated (`chatGptSummaries`) `summary_left` / `summary_center` / `summary_right` (49.3% of stories), a `bias_comparison` paragraph, and a `generated_headline`. These are *outputs* of tasks 3 and 4 — useful as weak supervision or as a baseline to beat, **not** as ground truth. |
 
 ### GDELT
 
@@ -130,7 +130,8 @@ reconstructed from the data we hold:
 - **AllSides** — how stories are selected for a roundup at all; how the three featured
   articles per story are chosen from the candidate pool.
 - **Ground News** — the clustering algorithm; which MT system performs the translation;
-  which model generates the summaries and `bias_comparison`; why `summary_right` is
+  which exact model generates the summaries and `bias_comparison` (the payload object
+  is named `chatGptSummaries`, so the family is GPT, but no version is exposed); why `summary_right` is
   empty on many stories that have left and center summaries.
 - **GDELT** — how GKG assigns V2Themes (documented as a proprietary taxonomy).
 - **Event Registry** — the `sim` score's definition; why `sim == 0` on 96.8% of
