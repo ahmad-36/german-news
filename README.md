@@ -6,7 +6,67 @@ Lives in `news/` alongside its sister repos, each an independent git repo. Split
 the former monolithic `news` repo (Sept 2026, now retired to `archive/news`). Sisters:
 [news-gdelt](../news-gdelt), [news-eventregistry](../news-eventregistry),
 [news-explorer](../news-explorer), and
-[muws-allsides-dataset](https://github.com/muws-workshop/muws-allsides-dataset).
+[muws-allsides-dataset](../muws-allsides-dataset).
+
+## What is human, what is GPT
+
+A Ground News record has three layers, made in three different ways. Don't treat them as
+one kind of signal.
+
+| layer | fields | who made it | unit | coverage |
+|---|---|---|---|---|
+| **Bias labels** | `source_bias`, `bias_ratings`, `left_pct` / `center_pct` / `right_pct` | **Human** — averaged from AllSides, Ad Fontes Media and Media Bias/Fact Check | **outlet**, not article | 62.6% of articles; 37.4% `unknown` |
+| **Summaries + bias comparison** | `summary_left` / `summary_center` / `summary_right`, `bias_comparison`, `generated_headline` | **GPT** | **story** | partial — see below |
+| **Clustering** | which articles share a story; `topics` | **Ground News' own pipeline**, run on English machine translations | story | all 894 stories |
+
+**Bias labels are human, outlet-level, and US-framed.** Ground News rates nothing itself.
+All three agencies are US organisations that place outlets on the American left–right axis.
+A German outlet gets a position on a US spectrum, if it is rated at all. The agencies
+**disagree on 32.1%** of rated articles, and Ground News averages them into one value.
+Every article from an outlet gets the same label, so a classifier trained on it learns the
+publisher, not the article's stance. AllSides'
+[audit methodology](https://www.allsides.com/sites/default/files/AllSides-Media-Bias-Audit_Example-March-2022.pdf)
+shows how the label is made. It samples 5 to 10 headlines, or the top article on a
+couple of major stories. US survey respondents rate the outlet as a whole from that
+sample, and their ratings are averaged into **one overall score for the publication**. The
+same report says the ratings *"reflect the average judgment of the American people."*
+Details: [news-source-survey/docs/stance_labels.md](../news-source-survey/docs/stance_labels.md).
+
+**Summaries and the bias comparison are GPT output, story-level, with partial coverage.**
+The page payload stores them in an object named `chatGptSummaries` (read at
+[scraper.py:777](scraper.py#L777)). The exact model is not exposed. Coverage over 894
+stories:
+
+| field | stories |
+|---|---|
+| `summary_left` | 320 |
+| `summary_center` | 414 |
+| `summary_right` | 273 |
+| any side summary | 441 (49.3%) |
+| all three sides | 209 (23.4%) |
+| `bias_comparison` | 499 |
+| `generated_headline` | 490 (from `generatedHeadline`; LLM-written, model not named) |
+
+A side is missing when the story has too little coverage from that side. Use these fields
+as weak supervision or as a baseline to beat, **never as ground truth**, and never as
+human-written text. `title`, `description` and `dek` are **not** generated. They are
+editorial text from the outlets and Ground News.
+
+**Clustering is Ground News' own, and it runs after translation.** 41.2% of articles
+(18,969 / 46,030) are machine-translated into English before they are clustered and
+tagged. The source string survives in `original_title` / `original_description`. For
+these articles `title` is the translation, so use `original_title` when you need the
+publisher's wording. The translation step also causes a specific error mode: it deletes
+entities that clustering depends on.
+
+- Surnames that are also German words are translated away: *Manuel **Neuer*** → "new".
+- Club names collide with place names: *FC **Bayern*** → "Bavaria"; *Tor* (goal) → "Gate".
+- `USA` / `US-` collapses into the English word "Us" (96 of 4,167 distinct German titles).
+- Topic tagging runs on the damaged text. The Neuer/Urbig goalkeeper cluster is tagged
+  **"Mohammed Bin Salman"**.
+
+The translation engine and the clustering algorithm are both undocumented. Full write-up:
+[news-source-survey/docs/translation_problem.md](../news-source-survey/docs/translation_problem.md).
 
 ## Where data lives
 
@@ -94,12 +154,13 @@ streamlit run ui/topic_discovery.py
 - **Only 12.1% German.**
 - **37.4% of bias labels are the literal string `unknown`**, concentrated on exactly the
   small non-English outlets that make up the German tail.
-- **Labels are per outlet, and contested.** Ground News does not rate anything itself; it
-  averages Media Bias/Fact Check, Ad Fontes and AllSides, which **disagree on 32.1%** of
-  articles. Its own docs: *"This rating does not measure the bias of specific news
-  articles. The analysis is done at the publication level."*
-- **Summaries are LLM-generated** — `summary_left/center/right`, `bias_comparison` and
-  `generated_headline`. The *labels* are not.
+- **Labels are per outlet, US-framed, and contested.** Ground News does not rate anything
+  itself; it averages Media Bias/Fact Check, Ad Fontes and AllSides, which **disagree on
+  32.1%** of articles. Its own docs: *"This rating does not measure the bias of specific
+  news articles. The analysis is done at the publication level."*
+- **Summaries are GPT-generated** (`chatGptSummaries`) — `summary_left/center/right`,
+  `bias_comparison`, plus the LLM-written `generated_headline`. The *labels* are not. See
+  [What is human, what is GPT](#what-is-human-what-is-gpt).
 - **Translation happens before clustering**, and it loses entities —
   [the write-up](../news-source-survey/docs/translation_problem.md).
 - Language tags are unreliable (Luxembourgish tagged `de`).
