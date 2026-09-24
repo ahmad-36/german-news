@@ -1,18 +1,24 @@
-# The German Keyword List
+# German Keywords and Crawl Targets
 
-The seed terms used to discover German coverage on Ground News, how they were chosen,
-how they performed, and how to extend them.
+Everything used to find German coverage: the **topic pages** the Ground News crawl walks,
+the **86 search terms** used to reach what those pages miss, and the **publisher register**
+that decides what counts as German. Plus how the terms were chosen, how they performed, and
+how to extend them.
+
+§1 is the honest answer to "what do we actually crawl with" — most stories arrive through
+the topic pages, not through keywords at all.
 
 **Machine-readable copies** live in
-[news-ground-news/keywords/](https://github.com/ahmad-36/news-ground-news/tree/main/keywords)
+[news-ground-news/keywords/](../../news-ground-news/keywords)
 and, identically, in
-[news-gdelt/keywords/](https://github.com/ahmad-36/news-gdelt/tree/main/keywords):
+[news-gdelt/keywords/](../../news-gdelt/keywords):
 
 | file | contents |
 |---|---|
 | `german_politics.txt` | 30 terms — parties, institutions, policy, recurring events |
 | `german_all.txt` | 86 terms — the above plus companies, cities, sport, EU, US/geopolitics |
 | `german_politics_themes.txt` | 13 GDELT GKG theme codes, empirically derived |
+| `ground_news_interests.txt` | the 17 Ground News topic pages the crawl walks |
 | `german_keywords.json` | all of the above with measured per-term yield |
 
 Both `.txt` files are directly usable as a collection filter:
@@ -24,7 +30,78 @@ python gdelt_dump_pull.py --start 2026-01-05 --end 2026-01-12 \
 
 ---
 
-## 1. The rule the list is built on
+## 1. What Ground News is actually crawled with
+
+Three separate mechanisms, and they use different vocabularies. Only the second is a
+"keyword list" in the usual sense, but all three decide what ends up in the dataset.
+
+### A. Listing pages — the default crawl
+
+`scraper.py` walks a fixed set of pages on every run and keeps stories with 3+ sources.
+**This is what produces the bulk of the 894 stories**; no keyword is involved.
+
+Three generic listings:
+
+`ground.news/` (homepage) · `/top` · `/blindspot`
+
+Seventeen `/interest/<slug>` topic pages — the topic filter for discovery:
+
+| | | |
+|---|---|---|
+| `us-politics` ⚠️ | `ai` | `business-and-markets` |
+| `environment-and-climate` | `health-and-medicine` | `international` |
+| `tech` | `science` | `education_fb8947` |
+| `sports` | `entertainment` | `world` ⚠️ |
+| `crime` ⚠️ | `economy` | `energy` ⚠️ |
+| `law` ⚠️ | `media` ⚠️ | |
+
+> ⚠️ **Six of these seventeen need verifying.** Ground News disambiguates topic slugs with
+> a hash suffix, and the dataset only ever contains the suffixed form for five of them —
+> `us-politics_3c3c3c`, `crime_a31cae`, `energy_f044a6`, `law_086880`, `media_5b9bd3` —
+> while `world` never appears at all. The crawl list uses the bare slug for these but the
+> *suffixed* form for `education_fb8947`, which is inconsistent. Either the bare slug
+> redirects (harmless) or those pages return nothing and six of seventeen topic feeds are
+> silently empty. Worth one manual check; it would be a quiet recall loss.
+
+### B. Search terms — the keyword list
+
+86 German seed terms, used by `--query` and the discovery pipeline to find coverage the
+listing pages miss. This is the list in §3, and the one to extend.
+
+```bash
+python scraper.py --query "Heizungsgesetz"
+python discovery/german_discovery_run.py     # runs the whole list
+```
+
+### C. German-outlet filter — deciding what counts as German
+
+Neither of the above filters by language, so German stories are identified *after*
+scraping, by matching the publisher name against a register in `germanlib.py`:
+
+| group | names |
+|---|---|
+| public broadcasters | 13 — Tagesschau, ZDF, Deutschlandfunk, … |
+| major regional dailies | 13 — Rheinische Post, Kölner Stadt-Anzeiger, … |
+| national quality dailies | 10 — FAZ, Süddeutsche Zeitung, Die Zeit, … |
+| national magazines/portals | 9 — Der Spiegel, Stern, Focus, … |
+| tabloids / mass media | 6 — Bild, B.Z., … |
+| business & finance | 5 — Handelsblatt, WirtschaftsWoche, … |
+| tech / digital | 4 — Heise Online, Golem.de, Netzpolitik.org |
+| **total** | **60 distinct names** |
+
+Plus 23 `KNOWN_GERMAN_SOURCE_SLUGS` used for a faster slug-level check.
+
+Matching is word-level, not substring — a naive substring check made "BR" (Bayerischer
+Rundfunk) match inside *Breitbart* and "stern" inside *Western Journal*. Two register
+entries, `Express` and `Focus`, require an exact full-name match because they collide with
+*Indian Express*, *Daily Express* and similar.
+
+**This register is the real ceiling on German coverage.** 60 outlets is a small slice of
+the German press; anything outside it is not counted as German even when it is.
+
+---
+
+## 2. The rule the search terms are built on
 
 This is the part worth carrying over to any extension, because it was established
 empirically rather than assumed:
@@ -49,9 +126,9 @@ the clustering side.
 
 ---
 
-## 2. The list
+## 3. The search-term list
 
-86 terms. ⚠️ marks the four that returned nothing (§3).
+86 terms. ⚠️ marks the four that returned nothing (§4).
 
 | group | n | terms |
 |---|---|---|
@@ -64,9 +141,9 @@ the clustering side.
 | **Sport** | 8 | `Bayern München` · `Borussia Dortmund` · `Bundesliga` · `DFB` · `FIFA Deutschland` · `Olympia Deutschland` · `RB Leipzig` · `deutsche Nationalmannschaft` |
 | **US, geopolitics, tech, climate** | 24 | `Brandmauer` · `Bundeswehr` · `E-Auto` · `EZB` · `Energiewende` · `German economy` · `KI` · `Kreml` · `Künstliche Intelligenz` · `NATO summit Germany` · `Republikaner` ⚠️ · `Selenskyj` · `Strompreis` ⚠️ · `Trump` · `US-Präsident` · `US-Wahl` · `Ukraine` · `Weißes Haus` · `climate change Germany` · `data protection Germany` · `interest rate Germany` · `recession Germany` · `semiconductor Germany` · `tariffs Germany` |
 
-The mixed languages are deliberate, not sloppiness — see §1.
+The mixed languages are deliberate, not sloppiness — see §2.
 
-## 3. How the terms performed
+## 4. How the terms performed
 
 From the discovery run of 2026-08-06/07 (`german_discovery_candidates.jsonl`, 880
 candidate stories):
@@ -95,7 +172,7 @@ the count carries information — they are genuinely thin rather than truncated:
 | `Bundesverfassungsgericht` | 9 | Federal Constitutional Court | "Constitutional Court" |
 
 **All four are generic German compounds, not proper nouns** — the same failure mode as the
-four zero-hit terms, just milder. This is the §1 rule showing up a second time in the data:
+four zero-hit terms, just milder. This is the §2 rule showing up a second time in the data:
 the closer a term is to a common noun, the worse it travels through translation. Every one
 of these should be replaced by its English form qualified with "Germany".
 
@@ -104,16 +181,16 @@ of these should be replaced by its English form qualified with "Germany".
 | Term | Why it failed |
 |---|---|
 | `Bundestagswahl` | No federal election in the window. Genuinely absent, not a bad term — keep it for a range that includes one. |
-| `Frankreich` | Generic country name; the English index says "France". **Violates the rule in §1** — should be `France` or `French politics`. |
+| `Frankreich` | Generic country name; the English index says "France". **Violates the rule in §2** — should be `France` or `French politics`. |
 | `Republikaner` | Same failure: English coverage says "Republicans". Should be `Republicans`. |
 | `Strompreis` | Generic compound noun; English says "electricity price". Should be `electricity price Germany`. |
 
 Three of the four are the *same mistake* — a generic German word where the English form
-was needed. That is a strong confirmation of the §1 rule, and the fix is mechanical.
+was needed. That is a strong confirmation of the §2 rule, and the fix is mechanical.
 
 ---
 
-## 4. Discovered interest tags — the cheapest way to extend
+## 5. Discovered interest tags — the cheapest way to extend
 
 The discovery run also surfaced **77 Ground News interest tags** attached to matched
 stories. These are the platform's own topic vocabulary and are the most natural source of
@@ -139,7 +216,7 @@ which the discovery pipeline already records.
 
 ---
 
-## 5. Extending the list
+## 6. Extending the list
 
 ### From GDELT GKG themes — concrete, already derived
 
@@ -178,7 +255,7 @@ Shipped as `keywords/german_politics_themes.txt`.
 ### From EventKG
 
 Not yet tried. EventKG would give entity URIs rather than surface strings, which sidesteps
-the translation problem in §1 entirely — an entity is language-independent, and you can
+the translation problem in §2 entirely — an entity is language-independent, and you can
 render whichever surface form each provider indexes. Worth a trial specifically for the
 three terms that failed for surface-form reasons.
 
@@ -196,7 +273,7 @@ filter we are not currently using ([api_filters.md](api_filters.md)).
 
 ---
 
-## 6. How the list is used now
+## 7. How the list is used now
 
 Originally a Ground News *search* input. It is now also a GDELT *collection filter*, which
 is how GDELT collection is bounded instead of run as a census:
