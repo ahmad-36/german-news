@@ -8,7 +8,7 @@ the former monolithic `news` repo (Sept 2026, now retired to `archive/news`). Th
 collectors now live in
 [news-gdelt](../news-gdelt), [news-ground-news](../news-ground-news),
 [news-eventregistry](../news-eventregistry) and
-[muws-allsides-dataset](https://github.com/muws-workshop/muws-allsides-dataset).
+[muws-allsides-dataset](../muws-allsides-dataset).
 This repo consumes what they produce.
 
 ## Where data lives
@@ -24,7 +24,7 @@ data/unified/                            ← written here
 ../news-gdelt/data/gdelt/                ← read from the sibling
 ../news-ground-news/data/ground_news/    ← read from the sibling
 ../news-eventregistry/data/eventregistry/← read from the sibling
-~/qbias/Qbias/allsides_crawl/            ← read via $QBIAS_DIR
+../muws-allsides-dataset/output/          ← read from the sibling
 ```
 
 ## Raw vs unified — which files are which
@@ -38,6 +38,13 @@ Each collector repo's `data/` holds that source's **raw, native-shape** output. 
 | `../news-ground-news/data/ground_news/ground_news.jsonl` | raw — `sources`, `summary_left`, `source_bias`, `dek` |
 | `../news-eventregistry/data/eventregistry/articles_germany.jsonl` | raw — one flat article per line |
 | **`data/unified/unified_*.jsonl`** | **unified — `articles[]` each with `stance`, `bias_rating`, `body_text`, `meta`** |
+
+**Ground News provenance carries into unified.** In `unified_ground_news.jsonl`,
+`stance_summaries` and `meta.bias_comparison` are **GPT output**, and `meta.generated_headline`
+is LLM-written. Article `stance` is a **human, outlet-level, US-framed** label. For
+translated articles, `headline` is Ground News' English machine translation, and the
+original is in `meta.original_title`. Details:
+[news-ground-news → What is human, what is GPT](../news-ground-news/README.md#what-is-human-what-is-gpt).
 
 The UI only ever reads the unified files. Raw is kept as the archive, because unification is
 lossy: source-specific fields survive only inside `meta`, so a schema change is a cheap
