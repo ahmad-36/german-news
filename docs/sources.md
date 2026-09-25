@@ -9,7 +9,7 @@ Every limit noted here also appears, with status, in the [problems register](pro
 ## AllSides
 
 > US political news, presented as left/center/right triplets per story.
-> Repo: [`muws-allsides-dataset`](../../muws-allsides-dataset) — scraper and data, `output/`
+> Repo: [`muws-allsides-dataset`](../../../muws-allsides-dataset) — scraper and data, `allsides_crawl/output/` + `multi_source_scrape/output/`
 
 ### How scraping works
 

@@ -15,11 +15,11 @@ Only **AllSides** has actual image files on disk. **GDELT** and **Event Registry
 
 ## AllSides: two separate image paths
 
-Everything lives under `muws-allsides-dataset/output/images/`.
+Everything lives under `~/muws-allsides-dataset/allsides_crawl/output/images/` (story images) and `multi_source_scrape/output/images/` (article images).
 
 ### 1. Stance thumbnails (AllSides roundup page)
 
-- **Script:** [`allsides_scraper.py`](../../muws-allsides-dataset/allsides_scraper.py)
+- **Script:** [`allsides_scraper.py`](../../../muws-allsides-dataset/allsides_crawl/crawler/allsides_crawler.py)
 - **Source:** the image AllSides shows next to each left/center/right headline on the
   story page, taken from the `<img>` that is not the bias-rating badge.
 - **Stored as:** `image_link` (URL) on every stance slot. For featured stances the file is
@@ -32,7 +32,7 @@ Everything lives under `muws-allsides-dataset/output/images/`.
 ### 2. Article images (the outlet's own page)
 
 - **Scripts:** one parser per domain in
-  [`news_scrapers/`](../../muws-allsides-dataset/news_scrapers/). The shared download step is
+  [`multi_source_scrape/scrapers/`](../../../muws-allsides-dataset/multi_source_scrape/scrapers/). The shared download step is
   `download_article_images` in `news_scrapers/base.py`.
 - **Source:** the images inside the article body on the outlet's site, together with their
   captions where the page has them.

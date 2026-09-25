@@ -14,7 +14,7 @@ the written analysis; the collection code lives in one repo per source:
 
 | repo | what it collects |
 |---|---|
-| [muws-allsides-dataset](../muws-allsides-dataset) | AllSides — crawler, per-domain scrapers, and the crawl |
+| [muws-allsides-dataset](../../muws-allsides-dataset) | AllSides — crawler, per-domain scrapers, and the crawl |
 | [news-gdelt](../news-gdelt) | GDELT — collection, clustering, enrichment |
 | [news-ground-news](../news-ground-news) | Ground News — scraper, discovery, keyword list |
 | [news-eventregistry](../news-eventregistry) | Event Registry |
@@ -42,7 +42,7 @@ Sept 2026, which is retired at `archive/news`.
 | [docs/images.md](docs/images.md) | Which images were collected, by what method, and which are actually on disk |
 | [docs/api_filters.md](docs/api_filters.md) | Exactly which filters GDELT and Event Registry expose |
 | [docs/problems.md](docs/problems.md) | **Every known problem in one register**, with status |
-| [docs/other_sources.md](docs/other_sources.md) | Nine providers beyond the four |
+| [docs/other_sources.md](docs/other_sources.md) | Nine other providers — coverage, labels, cost |
 | [docs/keywords.md](docs/keywords.md) | The keywords used for Ground News, and how they were picked |
 | [docs/collection_policy.md](docs/collection_policy.md) | Why collection is now bounded, and a measured one-week test |
 
