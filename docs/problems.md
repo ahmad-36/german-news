@@ -70,5 +70,5 @@ the register, so nothing gets lost between them.
 2. **German full text we may republish** (#2, #13). CC-NEWS is the obvious candidate:
    openly licensed, multilingual, full HTML.
 3. **Cluster-then-translate instead of translate-then-cluster** (#4). This is the
-   architecture the JRC's Europe Media Monitor used before it was discontinued, and it is a
+   architecture the JRC's Europe Media Monitor uses today across 80 languages, and it is a
    directly testable claim for a paper.

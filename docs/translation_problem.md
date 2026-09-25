@@ -183,9 +183,9 @@ Three consequences worth stating in a paper:
 3. **Cluster-then-translate would not have this failure mode.** Clustering in the source
    language and translating only for presentation preserves `Neuer` as an unmatched token
    — unglamorous, but correct. This is a directly testable architectural claim, and it is
-   the architecture the JRC's Europe Media Monitor used: cluster within each of 60
-   languages, then link clusters across languages. (EMM has since been discontinued — see
-   [other_sources.md](other_sources.md).)
+   the architecture the JRC's Europe Media Monitor (EMM) uses: cluster within each
+   language, then link clusters across languages. EMM is live and covers 80 languages —
+   see [other_sources.md](other_sources.md).
 
 ### Honest limits of this evidence
 
