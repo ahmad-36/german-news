@@ -32,6 +32,7 @@ Sept 2026, which is retired at `archive/news`.
 
 | Document | What it answers |
 |---|---|
+| [docs/status_2026-09.md](docs/status_2026-09.md) | **Status update** — what was asked, what is done, what is needed |
 | **[Comparison table](#the-comparison-table)** (below) | Side-by-side: method, content, labels, images, limits |
 | [docs/sources.md](docs/sources.md) | Per provider: how scraping works, what you get, what the limits are |
 | [docs/pipeline.md](docs/pipeline.md) | The pipeline diagram, and how each provider performs each step |
