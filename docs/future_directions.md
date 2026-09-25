@@ -31,12 +31,18 @@ machine-translated text. What each part of a Ground News record actually is:
   `chatGptSummaries`. Only 441 of 894 stories have any side summary, and only 209 have all
   three. These are GPT's reading of the coverage, so they are weak supervision at best,
   not ground truth.
-- **Clustering:** Ground News' own pipeline, run after translating everything into
-  English, with an error mode we measured. 41.2% of articles are machine-translated into
-  English before they are clustered and tagged. The translation deletes entities (*Manuel
-  **Neuer*** → "new", *FC **Bayern*** → "Bavaria", `USA` → "Us"). One Bundesliga
-  goalkeeper cluster ends up tagged "Mohammed Bin Salman". See
-  [translation_problem.md](translation_problem.md).
+- **Clustering: mechanism unknown.** Ground News does not document how it groups articles
+  into stories, and nothing in the scraped record reveals it — no algorithm, no
+  similarity score, no indication of which text the clustering key is built from. Treat
+  its clusters as a black box.
+
+  What we *can* measure is that **41.2% of articles are machine-translated into English**
+  and that the translation deletes entities (*Manuel **Neuer*** → "new", *FC **Bayern***
+  → "Bavaria", `USA` → "Us"), and that at least one cluster's **topic tags** are wrong in
+  a way consistent with being derived from that translated text — a Bundesliga goalkeeper
+  story tagged "Mohammed Bin Salman". Whether the *clustering* also runs on the
+  translation is **not established**; see [translation_problem.md](translation_problem.md)
+  for what the evidence does and does not support.
 
 **AllSides rates the outlet, not the article.**
 AllSides' audit methodology
@@ -333,7 +339,7 @@ What creating the dataset involves:
 
 | | Method | Who does it this way | Where it can break |
 |---|---|---|---|
-| **A** | **Translate → cluster**: machine-translate everything into one language, then cluster once | Ground News | Translation errors become clustering errors. Entities are deleted (*Neuer* → "new", *Bayern* → "Bavaria"); see [translation_problem.md](translation_problem.md) |
+| **A** | **Translate → cluster**: machine-translate everything into one language, then cluster once | *no confirmed example* — Ground News translates, but whether it clusters on the translation is undocumented | Translation errors would become clustering errors: entities are deleted (*Neuer* → "new", *Bayern* → "Bavaria"); see [translation_problem.md](translation_problem.md) |
 | **B** | **Cluster per language → link clusters**: cluster within each language, then join the clusters across languages | Event Registry | Needs a cross-lingual linking step, and a missed link splits one event into several |
 | **C** | **Multilingual embed → cluster once**: embed all articles in one shared multilingual space, cluster once, no translation | Ours (proposed) | Embedding quality varies by language; the distance threshold has to be tuned |
 

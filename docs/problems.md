@@ -19,7 +19,7 @@ the register, so nothing gets lost between them.
 
 | # | Problem | Status | Detail |
 |---|---|---|---|
-| 4 | **Ground News translates before it clusters**, and the translation deletes entities — `Neuer`→"new", `Bayern`→"Bavaria", `USA`→"Us" (96 titles, 2.3%). One Bundesliga cluster ends up tagged "Mohammed Bin Salman". Measured rates are small; the *mechanism* is the finding. | 🟠 | [translation_problem.md](translation_problem.md) |
+| 4 | **Ground News' translation deletes entities** — `Neuer`→"new", `Bayern`→"Bavaria", `USA`→"Us" (96 titles, 2.3%); one Bundesliga cluster is tagged "Mohammed Bin Salman", so downstream tagging reads the translated text. **Its clustering mechanism is undocumented**, so whether clustering also runs on the translation is unverified. | 🟠 | [translation_problem.md](translation_problem.md) |
 | 5 | **AllSides inflates articles ~8×** — 68,352 article slots collapse to 8,072 unique URLs, because sidebar articles repeat across story pages. Any per-article statistic computed without deduplicating is wrong. | 🟠 | see #6 · [stance_labels.md](stance_labels.md) |
 | 6 | **The AllSides eval set is 4.2× duplicated with train/test leakage.** 11,779 records hold 2,807 distinct texts; 77.9% of records are affected. This inflated the headline TF-IDF result by 22 points (94.6% → 72.6% deduplicated). | 🟠 | [stance_labels.md](stance_labels.md#4-experiment-3--a-correction-the-eval-set-is-42-duplicated) |
 | 7 | **Ground News' three rating agencies disagree on 32.1%** of rated articles (MBFC, Ad Fontes, AllSides). Ground News averages them and presents one value. | 🟡 | [stance_labels.md](stance_labels.md) |
@@ -69,6 +69,7 @@ the register, so nothing gets lost between them.
    this. [other_sources.md](other_sources.md)
 2. **German full text we may republish** (#2, #13). CC-NEWS is the obvious candidate:
    openly licensed, multilingual, full HTML.
-3. **Cluster-then-translate instead of translate-then-cluster** (#4). This is the
-   architecture the JRC's Europe Media Monitor uses today across 80 languages, and it is a
-   directly testable claim for a paper.
+3. **Cluster-then-translate instead of translate-then-cluster** (#4). The JRC's Europe
+   Media Monitor uses this across 80 languages. Our data motivates the question but does
+   not settle it — Ground News' clustering order is unknown — so this is a testable
+   hypothesis, not a finding.

@@ -49,9 +49,9 @@
   <!-- warnings -->
   <g>
     <rect x="470" y="312" width="450" height="66" rx="9" fill="#fff7ed" stroke="#ea580c" stroke-width="2"/>
-    <text x="488" y="336" font-size="13" font-weight="700" fill="#7c2d12">⚠ Ground News TRANSLATES here</text>
-    <text x="488" y="357" font-size="12" fill="#9a3412">…then clusters the English text. Entities are lost:</text>
-    <text x="488" y="372" font-size="12" fill="#9a3412">“Neuer” → “new”, “Bayern” → “Bavaria”, “USA” → “Us”</text>
+    <text x="488" y="336" font-size="13" font-weight="700" fill="#7c2d12">⚠ Ground News TRANSLATES 41% of articles</text>
+    <text x="488" y="357" font-size="12" fill="#9a3412">Entities are lost: “Neuer” → “new”, “Bayern” → “Bavaria”.</text>
+    <text x="488" y="372" font-size="12" fill="#9a3412">Whether it clusters on the translation is undocumented.</text>
 
     <rect x="470" y="400" width="450" height="66" rx="9" fill="#fff7ed" stroke="#ea580c" stroke-width="2"/>
     <text x="488" y="424" font-size="13" font-weight="700" fill="#7c2d12">⚠ Labels attach here — at OUTLET level</text>

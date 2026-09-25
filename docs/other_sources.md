@@ -31,8 +31,9 @@ political lean, and at what granularity.
 **EMM** is the most interesting. It is the only system
 found doing **cross-lingual cluster linking** — clustering within each language, then
 linking clusters that describe the same event. That is exactly the architecture
-[translation_problem.md](translation_problem.md) argues for, and the opposite of Ground
-News' translate-then-cluster. It also does framing/persuasion detection, which is
+[translation_problem.md](translation_problem.md) argues for. (Ground News translates and
+then publishes English, but whether it clusters on the translation is undocumented, so it
+is not a confirmed contrast case.) It also does framing/persuasion detection, which is
 bias-adjacent even though it is not a left/right label. **Next step: email
 `JRC-EMM-INFO@ec.europa.eu`** and ask what researchers can get.
 

@@ -1,15 +1,30 @@
-# Ground News Translates Before It Clusters — and the Translation Loses Entities
+# Ground News' Translation Loses Entities
 
-**Summary.** Ground News machine-translates non-English articles into English and then
-clusters, tags and labels the *translation*. The translation systematically destroys the
-proper nouns that clustering depends on: person surnames that are homographs of common
-German words, club names that collide with place names, and the token `USA`. We can
+**Summary.** Ground News machine-translates non-English articles into English. The
+translation systematically destroys proper nouns: person surnames that are homographs of
+common German words, club names that collide with place names, and the token `USA`. We can
 measure this because Ground News stores the pre-translation string in `original_title`
 alongside the translated `title`.
 
-This is a **paper-worthy finding**: it is a concrete, quantified, reproducible failure of
-the translate-then-cluster architecture, and it predicts the same failure in any
-multilingual news pipeline built the same way.
+> ### What this does and does not show
+>
+> **Established.** 41.2% of articles are machine-translated; the translation deletes the
+> entities listed in §3; and at least one story's **topic tags** are wrong in a way that
+> only makes sense if the tagger read the translated text (§2).
+>
+> **Not established: that Ground News clusters on the translation.** Ground News does not
+> document how it groups articles into stories, and nothing in the scraped record reveals
+> it. The order of translate and cluster is unknown.
+>
+> **There is even mild counter-evidence.** The worked example in §2 is a *coherent*
+> 15-article cluster whose English titles are badly mangled. If the clustering key were
+> the translated title, that cluster should have fragmented. It did not — which is what
+> you would expect if clustering ran on the original language, on URLs, or on a vendor's
+> event IDs.
+>
+> So the finding is about **translation quality and its effect on the published record and
+> on downstream tagging**, not a proven indictment of translate-then-cluster. The
+> architectural argument in §4 is a hypothesis this data motivates, not one it confirms.
 
 ---
 
@@ -162,18 +177,22 @@ mechanism generalises to every minority language mis-tagged as a major one.
 
 ## 4. Why this matters beyond Ground News
 
-The architecture is **translate → cluster → tag → label**. Each stage consumes the
+*This section is the hypothesis the measurements motivate — see the box at the top for
+which parts are established.*
+
+**If** a pipeline is ordered **translate → cluster → tag → label**, each stage consumes the
 previous stage's output, so a translation error is never corrected downstream — it is
 amplified:
 
 ```
 translate     Neuer ──────────► "new"
-cluster       clustering key loses the story's central entity
-tag           topic tagger, reading "new", assigns Mohammed Bin Salman
+cluster       clustering key loses the story's central entity   ← unverified for Ground News
+tag           topic tagger, reading "new", assigns Mohammed Bin Salman   ← observed
 label         stance labels attach to a cluster that may be the wrong cluster
 ```
 
-Three consequences worth stating in a paper:
+Only the *tag* step is directly evidenced here. Three consequences worth stating in a
+paper, if the architecture is confirmed:
 
 1. **Recall loss is invisible.** We can see the articles that were wrongly *kept together*
    because we have `original_title`. We cannot see the articles that were wrongly *split
@@ -189,6 +208,9 @@ Three consequences worth stating in a paper:
 
 ### Honest limits of this evidence
 
+- **We never observe the clustering step.** Everything here is measured on the published
+  record — titles and tags. The clustering mechanism is a black box, so any claim about
+  *when* translation happens relative to clustering is inference.
 - **The rates are low** — the largest single defect is 2.3% of distinct German titles.
   This is a demonstration of a mechanism, not a claim that Ground News clustering is
   broadly broken.

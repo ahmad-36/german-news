@@ -28,7 +28,7 @@ flowchart TB
     E4["4 · stance comparison"]
     E5["5 · stance prediction"]
 
-    X1["⚠ Ground News TRANSLATES here,<br/>then clusters the translation"]
+    X1["⚠ Ground News TRANSLATES (41% of articles)<br/>entities are lost; clustering order unknown"]
     X2["⚠ labels attach here, but at<br/>OUTLET level, not article level"]
 
     A1 --> A2 --> B1 --> C1 --> D1 --> D2 --> E0
@@ -52,7 +52,9 @@ flowchart TB
 Two things are worth naming explicitly because they are where the providers go wrong:
 
 - **Translation is not a free operation.** Ground News translates to English *before*
-  step ④, so clustering runs on translated text. See
+  step ④, and the translation deletes entities. Whether clustering itself runs on the
+  translation is **not documented and not verifiable from the data** — the mechanism is a
+  black box. See
   [translation_problem.md](translation_problem.md).
 - **Labels attach at step ④, but at the wrong granularity.** Every provider that offers a
   stance label attaches it to the *outlet*, then inherits it down to the article. See
@@ -96,7 +98,7 @@ document how, and it is not recoverable from the data.
 | ① **Collection** | We scrape the homepage, `/top`, `/blindspot` and ~20 `/interest/<topic>` pages. This is a **trending** axis, not a date axis — there is no "give me 3 March 2026" endpoint. Historical coverage only via Wayback replay, best-effort. Yield is ~2 stories/day. |
 | ② **Filtering** | Ground News filters by topic (`/interest/`) and exposes per-source place, so country filtering is possible post-hoc. Language is tagged per article but **misassigned** — Luxembourgish (`rtl.lu`) is tagged `de`. |
 | ③ **Topic clustering** | Done, 99.8% coverage, and the tags *read* like human ones (`Politics`, `Europe`, `Germany`) — but they are **machine-assigned, and assigned on the translated text**, so they inherit its errors. One Bundesliga goalkeeper cluster is tagged `Mohammed Bin Salman`. Treat them as machine labels, not editorial ones. |
-| ④ **Article clustering** | Done by Ground News' own pipeline. **Articles are machine-translated into English first** (41% of all articles, 18,969/46,030, carry an `original_title`), and clustering runs on the translation. Median 16 outlets per story — the best cluster breadth of any provider here. The mechanism beyond "editorial + vendor pipeline" is **unknown**. |
+| ④ **Article clustering** | Done by Ground News, **mechanism entirely undocumented** — no algorithm, no similarity score, and nothing in the scraped record showing which text the clustering key is built from. Separately, 41% of articles (18,969/46,030) are machine-translated into English and the translation deletes entities; whether clustering runs *on* that translation is **unknown**. Median 16 outlets per story — the best cluster breadth of any provider here, mangled titles notwithstanding. |
 | ④b **Stance partition** | Per-source `source_bias` on a 7-point scale. Aggregated from **three** rating agencies — Media Bias/Fact Check (25,435 articles), Ad Fontes Media (19,034), AllSides (8,330) — averaged where they differ. **They disagree on 32.1% of articles.** All three rate *outlets*, never articles. 37.4% of labels are the literal string `unknown`, concentrated on the small non-English outlets that make up the German tail. |
 | ⑤ **Downstream (pre-computed)** | Ground News ships GPT-generated (`chatGptSummaries`) `summary_left` / `summary_center` / `summary_right` (49.3% of stories), a `bias_comparison` paragraph, and a `generated_headline`. These are *outputs* of tasks 3 and 4 — useful as weak supervision or as a baseline to beat, **not** as ground truth. |
 
