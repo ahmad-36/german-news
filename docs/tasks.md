@@ -96,8 +96,10 @@ that does Task 3 three times and concatenates has not done Task 4.
 
 This is the task the label problem hits hardest, and the only one where the problem is
 *fatal rather than inconvenient*. With outlet-level labels the task silently becomes
-publisher identification: a bag of bigrams scores **94.6%** on a random split and **27.3%**
-when test outlets are held out — below the 46.8% majority baseline.
+publisher identification: deduplicated, a bag of bigrams scores **72.6%** on a random split
+(baseline 38.9%) and **30.9%** when test outlets are held out — **indistinguishable from
+that split's own 28.1% baseline**. It identifies outlets it has seen and carries none of it
+to new ones.
 
 **To unblock:** obtain article-level labels (Ad Fontes is the only provider offering
 them), or reframe explicitly as outlet identification, or restrict to the minority of

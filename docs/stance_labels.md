@@ -109,7 +109,14 @@ are outlet-level and the task is publisher identification.
 | nbcnews.com | 553 | left | | apnews.com | 512 | left |
 | politico.com | 505 | left | | | | |
 
-Across the full 37 source feeds, **36 of 37 carry exactly one label**. The single exception
+Across the full 37 source feeds, **36 of 37 carry exactly one label**.
+
+> **Two purity figures appear in these docs, for two different datasets.** This one is the
+> **eval set** — 11,779 articles from 15 domains, built by `prepare_unified_allsides.py`,
+> which is what the experiments below run on. [future_directions.md](future_directions.md)
+> quotes **408 of 411 outlets**, which is the **full AllSides scrape** (68,352 article
+> slots) on the 7-class rating; the same scrape is 409 of 411 pure on the coarse 3-class
+> stance. All three numbers say the same thing — the label is the publisher. The single exception
 is AP (59 `left` vs 453 `lean_left`) — a mid-scrape re-rating by AllSides, not article-level
 variation. It is pinned to `lean left`.
 
@@ -245,15 +252,17 @@ test:
 [`scripts/dedup_impact.py`](../scripts/dedup_impact.py) — same TF-IDF + LogReg baseline,
 as-is versus text-deduplicated with the split computed on the text hash:
 
-| split | condition | accuracy | macro F1 |
-|---|---|---|---|
-| random | as-is (duplicates straddle) | **94.6%** | 94.3% |
-| random | **deduplicated** | **72.6%** | 71.4% |
-| outlet-disjoint | as-is | 27.3% ± 7.4 | 26.4% |
-| outlet-disjoint | **deduplicated** | **30.9% ± 11.1** | 27.2% |
+Each split is compared against **its own** majority-class baseline — the baselines differ
+between splits, and mixing them up is easy to do.
 
-**22 of the 94.6 points were literal duplicate memorisation.** The outlet-disjoint number is
-unaffected, as expected — different outlets never share a text.
+| split | condition | accuracy | majority baseline | verdict |
+|---|---|---|---|---|
+| random | as-is (duplicates straddle) | **94.6%** | 39.3% | way above |
+| random | **deduplicated** | **72.6%** | 38.9% | well above |
+| outlet-disjoint | as-is | 27.3% ± 7.4 | **41.7%** ± 3.4 | **below**, on 4/4 folds |
+| outlet-disjoint | **deduplicated** | **30.9%** ± 11.1 | **28.1%** ± 10.5 | **indistinguishable** |
+
+**22 of the 94.6 points were literal duplicate memorisation.**
 
 ### What survives, and what does not
 
@@ -261,12 +270,18 @@ unaffected, as expected — different outlets never share a text.
 two shortcuts stacked — duplicate leakage *and* outlet boilerplate — and we previously
 attributed all of it to boilerplate.
 
-**Survives, and is now cleaner:** the conclusion. Deduplicated, the random split still
-scores **72.6%** against an outlet-disjoint **30.9%** — a 42-point gap, with the
-outlet-disjoint score still **below the 38.9% majority-class baseline**. A bag of bigrams
-that has seen an outlet during training identifies it easily and generalises to new outlets
-*worse than guessing*. Outlet-disjoint remains the only protocol on this dataset that yields
-an interpretable number.
+**Also does not survive: "worse than guessing".** On the *as-is* set the outlet-disjoint
+model really is below its baseline (27.3% vs 41.7%, losing on all four folds). Deduplicated,
+that reverses to a wash: 30.9% vs a 28.1% baseline, a mean gain of **+2.8pp with a ±20.0pp
+spread**, beating the baseline on **2 of 4 folds**. The honest statement is that the model
+is **indistinguishable from the majority class**, not that it is worse than it. The
+deduplicated folds are small (355–927 articles) and their class balance swings hard — fold 0
+alone has a 12.2% baseline — so per-fold variance dominates.
+
+**Survives, and is the point:** the gap. Deduplicated, the random split scores **72.6%**
+against an outlet-disjoint **30.9%**. A bag of bigrams that has seen an outlet in training
+identifies it easily, and carries **none** of that to unseen outlets. Outlet-disjoint remains
+the only protocol on this dataset that yields an interpretable number.
 
 Every random-split figure in our earlier write-ups (`RESULT2.md`, `FINDINGS_2026-08-11.md`)
 carries this inflation and should be re-run deduplicated before being cited.

@@ -239,7 +239,7 @@ The filter set is the richest of any provider here — `lang`, `conceptUri`, `ca
   evaluation only — the blocking constraint on any public release.
 - 🔴 **461 of 2,000 free tokens left**; 30-day window; archive costs 5 tokens/year. A second
   7-day pull is unaffordable.
-- 🔴 **Not a story dataset** — 100% singletons; 83.5% have no `eventUri`.
+- 🔴 **Not a story dataset** — 83.5% of articles have no `eventUri`, and `unify.py` drops the rest, so the unified file is 100% singletons. The raw pull does still hold 2,729 events over 21,416 articles; the signal exists upstream and is discarded downstream.
 - 🔴 **The duplicate flag deletes the best clusters** — one dpa item at 48 independent
   outlets is excluded from the event graph. Recoverable locally by title-clustering (51.7%
   of articles, zero API cost).

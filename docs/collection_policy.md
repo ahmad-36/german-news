@@ -169,7 +169,7 @@ deliberately and once, with `--resume`.
 
 ### Recommended before committing to a long range
 
-1. **Agree the keyword list first** — see [keywords.md](keywords.md) §5 for the four
+1. **Agree the keyword list first** — see [keywords.md §2](keywords.md#2-how-we-picked-them) for the four
    broken terms and the extension routes. Re-running a long pull because the term list was
    wrong is the expensive mistake to avoid.
 2. **Run one week per candidate topic area**, not one long range per topic. A week is

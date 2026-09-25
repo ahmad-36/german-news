@@ -87,10 +87,12 @@ outlet publishes then inherits that one number. Details:
 **Our own data shows it.** See [stance_labels.md](stance_labels.md):
 
 - All 15 outlets in the AllSides eval set have **100% label purity**.
-- A bag of bigrams scores **94.6%** on a random split but **27.3%** with held-out outlets,
-  below the 46.8% majority baseline.
-- The eval set is also **4.2× duplicated**. After deduplication, the random-split number
-  drops to 72.6%.
+- Deduplicated, a bag of bigrams scores **72.6%** on a random split (baseline 38.9%) but
+  **30.9%** with held-out outlets — indistinguishable from that split's own 28.1% baseline.
+  (The often-quoted 94.6% / 27.3% are the *pre-deduplication* figures and should not be
+  cited — see [stance_labels.md §4](stance_labels.md#4-experiment-3--a-correction-the-eval-set-is-42-duplicated).)
+- The eval set is **4.2× duplicated**, with the same article text on both sides of the
+  split for 77.9% of records — which is where the 22-point drop comes from.
 
 **What would change the decision:**
 
@@ -109,7 +111,8 @@ Code and full tables: `~/muws-allsides-dataset/stance_detection_experiment/`, ma
 
 #### Motivation
 
-AllSides labels articles by outlet, not by article. In our scrape, **408 of 411** outlets
+AllSides labels articles by outlet, not by article. In the **full scrape** — 411 outlets,
+68,352 article slots — **408 of 411** outlets
 carry one label on every article. The other three (AP, Daily Mail, The American
 Conservative) changed rating on a clean date, and in the 3-class setup each change stays
 on the same side. So a classifier trained on AllSides labels can score well just by
@@ -239,7 +242,7 @@ sides. That last point is subject to the epoch confound above.
 | Few-shot or fine-tuned LLMs | Not pursued; encoders answered the question at lower cost |
 | Outlet-recognition classifier | Just a standard classifier; only confirms what Baly already showed |
 | Rater disagreement (AllSides vs Ad Fontes vs MBFC) | Needed new scraping, which Eric ruled out |
-| Fox News outlier analysis | Circular: any strong model trained on AllSides learned from the same outlet labels |
+| Fox News outlier analysis | Dropped **with an AllSides-trained classifier** (circular — it learned the same outlet labels). Ran **zero-shot with an LLM instead**: see [stance_labels.md §3](stance_labels.md#3-experiment-2--the-outlier-check-how-often-does-an-llm-disagree-with-the-label) |
 | Center and length fixes (summaries, long-context models) | Raising accuracy against outlet-level labels doesn't measure article leaning |
 | Name-only test for choosing swap targets | Depends on the model, not the data |
 | Target choice by the outlet's own articles | Every outlet is 100% one side, so it can't rank anything |

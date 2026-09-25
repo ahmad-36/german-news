@@ -28,7 +28,7 @@ political lean, and at what granularity.
 
 ## The ones worth acting on
 
-**EMM** is the most interesting and the one I had wrong (see below). It is the only system
+**EMM** is the most interesting. It is the only system
 found doing **cross-lingual cluster linking** — clustering within each language, then
 linking clusters that describe the same event. That is exactly the architecture
 [translation_problem.md](translation_problem.md) argues for, and the opposite of Ground
@@ -47,34 +47,9 @@ actually republish.
 **NewsCatcher** is the only commercial API doing real event clustering, so it is the one
 useful benchmark against our own `SequenceMatcher` approach.
 
----
-
-## Correction: EMM is not discontinued
-
-An earlier version of this page said EMM had been permanently discontinued. **That was
-wrong.** What happened:
-
-- The **NewsBrief** web app was retired, and **MedISys** is being phased out (15/09/2026).
-- `emm.newsbrief.eu` now **301-redirects to [media-monitor.europa.eu](https://media-monitor.europa.eu/)**.
-- The underlying EMM system is **live** — the Commission's own
-  [Knowledge4Policy page](https://knowledge4policy.ec.europa.eu/europe-media-monitor-emm_en)
-  still describes it tracking 20,000 sites and 500,000 pages a day in 80 languages across
-  150 countries.
-
-The error came from taking a search-result summary at face value: the summary said
-"NewsBrief has been discontinued", which is true, and I generalised it to the whole system,
-which is not. EMM moves from *rejected* to *worth contacting*.
 
 ---
 
-## Not providers
-
-Static German corpora — no ongoing collection, no clustering: `taz2024full` (1.8M articles,
-single outlet, 1980–2024), `One Million Posts` (DerStandard comments, not articles), `MBIB`
-(bias benchmark collection — worth checking for a German subset), `BABE`/`MBIC` (expert
-sentence-level bias, English, but the closest annotation protocol to what we lack).
-
----
 
 ## What none of them fill
 

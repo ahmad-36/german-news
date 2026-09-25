@@ -19,7 +19,7 @@ Everything lives under `~/muws-allsides-dataset/allsides_crawl/output/images/` (
 
 ### 1. Stance thumbnails (AllSides roundup page)
 
-- **Script:** [`allsides_scraper.py`](../../../muws-allsides-dataset/allsides_crawl/crawler/allsides_crawler.py)
+- **Script:** [`allsides_crawler.py`](../../../muws-allsides-dataset/allsides_crawl/crawler/allsides_crawler.py)
 - **Source:** the image AllSides shows next to each left/center/right headline on the
   story page, taken from the `<img>` that is not the bias-rating badge.
 - **Stored as:** `image_link` (URL) on every stance slot. For featured stances the file is
