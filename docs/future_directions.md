@@ -168,26 +168,51 @@ name in the text, and where does that reliance come from?**
 | Conditions | original, stripped, invented neutral name, same-side swap, cross-side swap |
 | Metric | change in softmax probability per article; bootstrap CIs and Wilcoxon tests |
 | Chunking | chunk boundaries fixed on the original text; reported for the whole article and for the chunk containing the name |
-| Swap targets | from the data: the name with the highest share of mentioning articles on one side (≥30 mentions, ranked by Wilson lower bound). This gave NBC News (left), Newsweek (center), Washington Examiner (right) |
+| Swap targets | from the data: the name with the highest share of mentioning articles on one side (≥30 mentions, ranked by Wilson lower bound). Final run: **Politico** (left), **The BBC** (center), **Fox News** (right). A first run used NBC News / Newsweek / Washington Examiner and was redone — see the centre-control note below |
 
-**Results** (change in percentage points, whole article)
+**Results** — change in softmax probability, percentage points, **whole article**
+(mean over all chunks). Per-class columns show where the probability mass actually moves.
 
-| Condition | Δ P(correct label) | Δ P(swapped-in side) |
-|---|---|---|
-| Stripped | −8.4 | |
-| Neutral name | −9.4 | |
-| Same-side swap | −0.8 | |
-| Cross-side swap | −32.4 | +31.2 |
+| Condition | n | ΔP(left) | ΔP(center) | ΔP(right) | ΔP(true class) |
+|---|---:|---:|---:|---:|---:|
+| Stripped | 1,790 | +4.7 | −4.9 | +0.2 | **−8.4** |
+| Neutral name | 1,790 | −3.6 | −2.5 | +6.1 | **−9.4** |
+| Same-side swap | 1,790 | +3.5 | −4.0 | +0.5 | **+3.3** |
+| Cross-side swap | 1,234 | −5.3 | −0.6 | +5.9 | **−23.5** |
 
-- **The name works as a side signal.** On the same articles, cross-swap minus same-swap
-  is −50 points for left articles and −35 for right (p < 1e−80).
+The cross-swap row looks small only because it averages two opposite interventions.
+Split by the article's own side, the effect is large **and strongly asymmetric**:
+
+| Cross-swap | n | ΔP(left) | ΔP(center) | ΔP(right) | ΔP(swapped-in side) |
+|---|---:|---:|---:|---:|---:|
+| **left** article, name → right-leaning outlet | 483 | **−34.4** | −6.3 | **+40.7** | +40.7 [37.8, 43.7] |
+| **right** article, name → left-leaning outlet | 751 | **+13.4** | +3.1 | **−16.5** | +13.4 [12.0, 14.9] |
+| both, pooled | 1,234 | | | | +24.1 [22.5, 25.7] |
+
+- **The name works as a side signal**, and it is worth ~3× more when it points right.
+  Renaming a left-leaning article to a right-leaning outlet moves **+40.7 points** toward
+  right; the reverse move buys only **+13.4**. Paired against the same-side control on the
+  same articles, cross − same is **−49.0** for left articles and **−19.1** for right
+  (both p < 1e−80).
 - **Stripping ≈ neutral name.** The drop comes from losing the name, not from broken
   sentences. AP is the exception: deleting "(AP)" *raises* P(left) by 17 points.
-- **Long articles dilute the effect.** On the chunk containing the name, the cross-swap
-  effect is +39 points, against +31 for the whole article.
-- **The center control was broken.** Newsweek looked 99% center only because 207 of its
-  210 mentions come from its own articles. The model doesn't read "Newsweek" as center,
-  so the center same-side control failed.
+- **Long articles dilute the effect.** Restricted to the chunk containing the name, the
+  pooled cross-swap effect rises from **+24.1** to **+31.0**, and the left-article case
+  from +40.7 to **+52.2**.
+
+> **Correction.** An earlier version of this table reported −0.8 for same-side swap,
+> −32.4 / +31.2 for cross-side swap, and "−35 for right". Those mixed three different
+> rows of the source report: −32.1 is `cross_right` (swaps *to a right name*, not the
+> `cross` condition), +31.0 is the **name-chunk** scope rather than the whole article, and
+> the right-side paired contrast is −19.1, not −35. Same-side swap is **+3.3**, not −0.8.
+> All figures above are the whole-article block of
+> `analysis/publisher_sensitivity/premsa/REPORT.md`, with brackets showing 95% bootstrap
+> CIs.
+- **The center control was broken in the first run**, which is why the targets changed.
+  Newsweek looked 99% center only because 207 of its 210 mentions come from its own
+  articles. The model doesn't read "Newsweek" as center, so the centre same-side control
+  failed. The final run uses the BBC. Both runs are kept:
+  `analysis/publisher_sensitivity/premsa/` (final) and `premsa_v1_newsweek/` (first).
 
 #### Stage 3: where the effect comes from
 
@@ -323,6 +348,60 @@ What creating the dataset involves:
    LLM pre-labelling can speed this up, but the gold labels must be human.
 4. **Evaluation.** Use a split that holds out outlets and events, so the model cannot win
    by learning the publisher (the lesson from #1).
+
+### Proposed experiment: train an NLI model for stance
+
+The compact form of this task — *article + stance statement → supports / opposes /
+neutral* — **is** natural language inference: the article is the premise, the statement is
+the hypothesis, and the three labels are entailment / contradiction / neutral. That makes
+NLI the obvious modelling route, and it has one property the rest of this project lacks:
+**it does not need outlet labels**, so it sidesteps the granularity problem in #1 entirely.
+
+**Why train rather than use off-the-shelf.** We already ran four NLI encoders zero-shot on
+the AllSides set (`run_unified_nli.py`: `snli_only`, `mnli_only`, `combined`,
+`strong_encoder`). **All four scored below the majority-class baseline** — best 40.8%
+against 40.0% — and their mean probability on the gold label was ≈0.33 across every class.
+They were not wrong so much as *uninformative*. Two reasons to expect training to help:
+
+1. Those runs asked an out-of-domain question. Generic NLI hypotheses ("This text is
+   right-wing") are not the entailment relations MNLI was trained on, and the models had
+   never seen news-length premises with political targets.
+2. The scoring was ad hoc. The original `run_nli.py` argmaxed **raw entailment logits
+   across hypotheses**, which is not comparable between hypothesis strings — the
+   "right-wing" hypothesis sat ~3.5 nats above the others, which alone explains the
+   observed right-skew. `run_unified_nli.py` fixed this with `zeroshot_norm`, but the
+   conclusion was unchanged.
+
+**Setup.**
+
+| | |
+|---|---|
+| Premise | article body, sentence-aligned 400-token chunks at 35% overlap (`semantic_chunk_overlap`, already implemented) |
+| Hypothesis | one short statement per target, from the target-selection step above |
+| Labels | entail / contradict / neutral ↔ favor / against / neutral |
+| Init | an NLI-pretrained encoder (DeBERTa-v3-large-MNLI) rather than a bare LM, so the entailment head is already shaped |
+| Training | fine-tune on the human-annotated set; MNLI/ANLI as auxiliary data if the annotated set is small |
+| Aggregation | per-chunk probabilities pooled to an article decision — compare max-entailment vs mean |
+| **Split** | **outlet- *and* event-disjoint**, for the reason in #1 |
+
+**Controls, which matter more than the headline score.**
+
+- **Name-swap control.** Run the Stage-2 intervention above on the trained model. If
+  swapping the publisher name moves its prediction the way it moved premsa's (+40.7 for
+  left articles), the model has learned the outlet again and the score is not about stance.
+- **Hypothesis-only baseline.** Train on the hypothesis with no premise. NLI datasets are
+  notorious for hypothesis-only artefacts; if this scores well, the targets leak the label.
+- **Premise-shuffle baseline.** Pair each hypothesis with a random article from a different
+  event. Should collapse to chance.
+
+**What would make it worth doing.** A trained NLI model that beats the outlet-disjoint
+baseline *and* survives the name-swap control would be the first result in this project
+that measures article content rather than publisher identity. That is a stronger claim than
+any accuracy number.
+
+**What blocks it.** The annotated set from the four steps above — this cannot start before
+there are human labels. Everything else (chunking, the NLI roster, the swap harness) is
+already written.
 
 ---
 
