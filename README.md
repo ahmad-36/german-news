@@ -115,7 +115,7 @@ corpus.
 the 17 topic pages plus `/top` and `/blindspot` (the default crawl, no keyword involved),
 the 86 search terms, and the 60-name German publisher register in `germanlib.py` that
 decides what counts as German. Full breakdown:
-[keywords.md §1](../news-source-survey/docs/keywords.md#1-what-ground-news-is-actually-crawled-with).
+[keywords.md](../news-source-survey/docs/keywords.md).
 
 **The empirical rule behind the list:** proper nouns survive Ground News' English
 translation and find hits in German (`Bundeswehr` → 10 events); generic/abstract German
