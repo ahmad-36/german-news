@@ -24,7 +24,7 @@ python scripts/translation_audit.py --data ... --show   # print every match
 experiment and only run from inside it:
 
 ```
-qbias/Qbias/stance_detection_experiment/
+muws-allsides-dataset/stance_detection_experiment/
 ```
 
 They are included here so the method is readable alongside the results. To run them,

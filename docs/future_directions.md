@@ -102,7 +102,7 @@ outlet publishes then inherits that one number. Details:
 
 ### What actually ran: publisher-name reliance in political-leaning classifiers
 
-Code and full tables: `~/qbias/Qbias/stance_detection_experiment/`, mainly
+Code and full tables: `~/muws-allsides-dataset/stance_detection_experiment/`, mainly
 `publisher_sensitivity.py`, `analyze_publisher_sensitivity.py`, `baly_data.py`,
 `train_baly.py` and `compare_models.py`. Outputs are in
 `analysis/publisher_sensitivity/`, including `COMPARISON.md`.

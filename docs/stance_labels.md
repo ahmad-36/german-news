@@ -276,7 +276,7 @@ carries this inflation and should be re-run deduplicated before being cited.
 ## 5. Experiment 4 — Earlier results, in context
 
 From the July–August runs (full detail in
-`qbias/Qbias/stance_detection_experiment/RESULT2.md`):
+`muws-allsides-dataset/stance_detection_experiment/RESULT2.md`):
 
 - **Headline alone reaches 87.6%** on the inflated random split — 93% of full-text
   performance from 1.7% of the characters. Outlet identity is carried by the title's house

@@ -76,6 +76,35 @@ is gone.
 
 ---
 
+## 2b. Which GKG themes to filter on
+
+GDELT's theme vocabulary is large and noisy, so we derived a usable set empirically: run
+the keyword filter over one week, then keep the themes that co-occur with it. Shipped as
+`keywords/german_politics_themes.txt`.
+
+**Use these** (share of keyword-matched articles carrying the theme; themes are
+multi-valued, so shares exceed 100%):
+
+| theme | share | | theme | share |
+|---|---|---|---|---|
+| `USPEC_POLITICS_GENERAL1` | 162% | | `TAX_FNCACT_CHANCELLOR` | 71% |
+| `GENERAL_GOVERNMENT` | 146% | | `ELECTION` | 60% |
+| `EPU_POLICY_GOVERNMENT` | 142% | | `EPU_POLICY_POLICY` | 59% |
+| `LEADER` | 88% | | `EPU_POLICY_POLITICAL` | 35% |
+| `USPEC_POLICY1` | 80% | | `LEGISLATION` | 29% |
+| `TAX_FNCACT_MINISTER` | 74% | | `EPU_POLICY_LAW` | 29% |
+
+**Avoid these**, despite high frequency:
+
+| theme | why |
+|---|---|
+| `TAX_ETHNICITY_GERMAN`, `TAX_WORLDLANGUAGES_GERMAN` | artefacts of the German-language filter itself, not subject matter |
+| `ALLIANCE` | fires on 183% of articles — no discriminative value |
+| `CRISISLEX_CRISISLEXREC`, `CRISISLEX_C07_SAFETY` | generic crisis lexicon, very low precision |
+| `UNGP_FORESTS_RIVERS_OCEANS` | fires at 62% on political text; miscalibrated |
+
+---
+
 ## 3. Measured end-to-end test
 
 One week, 2026-01-05 → 2026-01-12, filtered with the 30-term

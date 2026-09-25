@@ -46,7 +46,7 @@ Topic is an attribute of a story you have already fetched, not a crawl axis.
 | Median outlets per story | 22 (max 48) |
 | Headline, URL, description | 100% / 100% / 99.4% |
 | **Body text** | **17.3%** (11,838), median 3,993 chars |
-| **Images** | **68.9%** have an image URL (47,122); the scraper also downloads them locally |
+| **Images** | **68.9%** have an image URL (47,122). Downloaded: 2,448 stance thumbnails + 8,268 article images, 5,306 with captions. See [images.md](images.md) |
 | Stance label | 99.9% (68,290), 7-point scale |
 | Topics | 100%, human-readable (`Donald Trump`, `Immigration`, `Economy And Jobs`) |
 | Story summary | 100%, editorial |

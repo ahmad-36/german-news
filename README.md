@@ -39,10 +39,11 @@ Sept 2026, which is retired at `archive/news`.
 | [docs/stance_labels.md](docs/stance_labels.md) | Where stance labels come from, and our experiments on them |
 | [docs/translation_problem.md](docs/translation_problem.md) | Ground News mistranslation → wrong clustering (paper-worthy) |
 | [docs/future_directions.md](docs/future_directions.md) | Candidate tasks and why each is or isn't pursued (bias classification: not pursued) |
+| [docs/images.md](docs/images.md) | Which images were collected, by what method, and which are actually on disk |
 | [docs/api_filters.md](docs/api_filters.md) | Exactly which filters GDELT and Event Registry expose |
 | [docs/problems.md](docs/problems.md) | **Every known problem in one register**, with status |
 | [docs/other_sources.md](docs/other_sources.md) | Nine providers beyond the four |
-| [docs/keywords.md](docs/keywords.md) | The German keyword list, how it performed, how to extend it |
+| [docs/keywords.md](docs/keywords.md) | The keywords used for Ground News, and how they were picked |
 | [docs/collection_policy.md](docs/collection_policy.md) | Why collection is now bounded, and a measured one-week test |
 
 ---
@@ -137,7 +138,8 @@ schema check, but that you cannot cite as ground truth. Read the note in every �
 | **Full body text** | 🟡 **17.3%** (11,838) via per-domain scrapers | 🔴 **0%** — headline + dek only | 🟠 **0% native**; 154,084 fetched by our own crawl (11% of articles) | 🟢 **100%**, median 2,111 chars |
 | Description / lede | 🟢 99.4% | 🟢 98.1% (real editorial dek) | 🔴 0% | 🟡 100% but *derived* — first lines of body |
 | **Images** | 🟢 **68.9%** image URL (47,122); local download supported | 🔴 **no image field at all** | 🟠 67.9% of *enriched* pages (145,078) via `og:image` | 🟢 **98.6%** image URL |
-| **Image captions** | 🔴 | 🔴 | 🟠 41.7% of enriched (88,992) | 🔴 URL only, no caption |
+| **Image captions** | 🟡 63% of article-scraper images (5,306 of 8,398); none on roundup thumbnails | 🔴 | 🟠 41.7% of enriched (88,992) | 🔴 URL only, no caption |
+| **Image files on disk** | 🟢 **10,716** (8.0 GB): 2,448 stance thumbnails + 8,268 article images · [details](docs/images.md) | 🔴 | 🔴 URLs only | 🔴 URLs only |
 | Story summary | 🟢 100% editorial | 🟡 99.7% — **LLM-generated** | 🔴 | 🟡 derived, not a real summary |
 | **Per-stance summaries** | 🔴 | 🟡 **49.3%** (441/894) — **LLM-generated**; `summary_right` often empty | 🔴 | 🔴 |
 | Bias-comparison paragraph | 🔴 | 🟡 **LLM-generated** | 🔴 | 🔴 |
