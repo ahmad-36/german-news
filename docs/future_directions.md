@@ -173,6 +173,10 @@ name in the text, and where does that reliance come from?**
 **Results** — change in softmax probability, percentage points, **whole article**
 (mean over all chunks). Per-class columns show where the probability mass actually moves.
 
+> **ΔP(true class)** = the change in the probability the model puts on the article's *gold*
+> label. Negative means the edit pushed the model away from the right answer. It is the
+> single headline number per condition; the per-class columns say *where* that mass went.
+
 | Condition | n | ΔP(left) | ΔP(center) | ΔP(right) | ΔP(true class) |
 |---|---:|---:|---:|---:|---:|
 | Stripped | 1,790 | +4.7 | −4.9 | +0.2 | **−8.4** |
@@ -188,6 +192,22 @@ Split by the article's own side, the effect is large **and strongly asymmetric**
 | **left** article, name → right-leaning outlet | 483 | **−34.4** | −6.3 | **+40.7** | +40.7 [37.8, 43.7] |
 | **right** article, name → left-leaning outlet | 751 | **+13.4** | +3.1 | **−16.5** | +13.4 [12.0, 14.9] |
 | both, pooled | 1,234 | | | | +24.1 [22.5, 25.7] |
+
+**Centre articles are the cleanest test**, because they have no "opposite" side, so both
+directions were run on the *same* 556 articles. Only the inserted name differs:
+
+| Centre article, name → | n | ΔP(left) | ΔP(center) | ΔP(right) |
+|---|---:|---:|---:|---:|
+| The Hill *(center control)* | 556 | +0.9 | −5.5 | +4.6 |
+| **Politico** *(left)* | 556 | **+19.5** | −21.0 | +1.5 |
+| **Fox News** *(right)* | 556 | −19.0 | **−32.1** | **+51.1** |
+
+Identical articles, identical procedure — inserting "Fox News" moves them **+51.1 points
+toward right**, while inserting "Politico" moves them only **+19.5 toward left**. The model
+does not weigh outlet names symmetrically: a right-coded name is worth roughly **2.6×** a
+left-coded one. This is the tightest controlled comparison in the experiment, and the
+strongest single piece of evidence that the model is reading the byline rather than the
+article.
 
 - **The name works as a side signal**, and it is worth ~3× more when it points right.
   Renaming a left-leaning article to a right-leaning outlet moves **+40.7 points** toward
