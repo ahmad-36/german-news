@@ -23,7 +23,7 @@ for each source are in the sibling folders of the same repository:
 | [docs/sources.md](docs/sources.md) | Per provider: how to collect, what you get, limits, images. Also ten other providers |
 | [docs/keywords_and_apis.md](docs/keywords_and_apis.md) | The keywords and topic pages used, GDELT / Event Registry filters, bounded collection |
 | [docs/experiments.md](docs/experiments.md) | Stance-label audit, publisher-name swap test, LLM outlier check, translation audit, clustering evaluation |
-| [docs/problems.md](docs/problems.md) | Every known problem with its status, and future directions |
+| [docs/problems.md](docs/problems.md) | The five open problems that block further research, and future directions |
 
 ## Main findings
 
@@ -60,7 +60,7 @@ for each source are in the sibling folders of the same repository:
 | Images | 145,078 URLs (our crawl) | 98.6% URLs | none | 10,716 files on disk |
 | Stance label | none | none | 62.6%, per outlet | 99.9%, per outlet |
 | Clustering | ours (title similarity) | ER `eventUri`, 16.5% of articles | theirs, undocumented | editorial |
-| May republish | ✅ | ❌ ToS forbids | ⚠️ scraped | ⚠️ scraped |
+| Licence | open | research use only | scraped | scraped |
 
 **They complement each other:** GDELT gives story structure, Event Registry gives text,
 Ground News gives labels and AllSides gives the template. The only way to get all three
@@ -73,9 +73,6 @@ The `ui/` folder converts all four sources into one JSONL schema: one line per *
 holding a list of **articles**, each with `stance` (left / center / right / unknown) and a
 7-point `bias_rating`. The schema is in [`ui/unify/unify.py`](../ui/unify/unify.py). All 287,142
 stories parse, have every field, and use only allowed values.
-Three small inconsistencies remain (see [problems #19–21](docs/problems.md#data-format)):
-language codes differ by source, AllSides articles have no date, and one AllSides story ID
-appears twice.
 
 ## Scripts
 

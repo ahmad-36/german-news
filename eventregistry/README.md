@@ -24,8 +24,6 @@ The query uses `lang="deu"`, publishers located in Germany, and a date window. I
 
 ## Limits
 
-- **The terms of service forbid redistributing the data**, including metadata. Use it
-  for internal evaluation only.
 - **Few articles are grouped into events.** Articles flagged as duplicates are left out of
   events, so wire stories carried by many outlets end up as singletons.
 - **Topics were not collected.** The default `returnInfo` excludes concepts and
@@ -36,6 +34,8 @@ The query uses `lang="deu"`, publishers located in Germany, and a date window. I
 
 [`clustering_eval/`](clustering_eval/) compares story-clustering methods against Event
 Registry's own events.
+
+*Note: Event Registry's terms allow research use only, not redistribution.*
 
 **Requirements:** `eventregistry`; `sentence-transformers`, `scikit-learn` and `scipy`
 for the clustering evaluation.

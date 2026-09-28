@@ -79,15 +79,15 @@ python eventregistry_german_sources.py --skip-discovery --days 7 --pull 5000
 | Events | 21,416 articles (16.5%) carry an `eventUri`, forming 2,392 multi-article stories |
 
 **Limits.**
-- 🔴 **The terms of service forbid redistribution**, including metadata. The data can be used
-  for internal evaluation only.
-- 🔴 **The free tier is limited:** 2,000 non-renewing tokens (1 per 100-article page) and
+- **The free tier is limited:** 2,000 non-renewing tokens (1 per 100-article page) and
   only the last 30 days. Older data needs the paid archive.
 - The duplicate flag removes wire stories from events. Of 59,088 duplicate-flagged
   articles, only 2 have an `eventUri`, so one dpa story carried by 48 outlets never forms a
   cluster. Grouping by normalised title would turn 51.7% of articles into multi-source
   stories at no API cost.
 - `sueddeutsche.de` returns only 300-character teasers.
+
+*Note: Event Registry's terms allow research use only, not redistribution.*
 
 ---
 
