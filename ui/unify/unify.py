@@ -18,7 +18,8 @@ Sources (each optional — missing inputs are skipped with a warning):
 Unified record = one news STORY with a list of ARTICLES, each tagged with a
 coarse 3-way stance (left/center/right/unknown) and a fine-grained bias rating.
 GDELT and Event Registry have no bias ratings, so their articles are stance
-"unknown"; Event Registry stories are single-article (it has no clustering).
+"unknown". Event Registry articles are grouped by ER's own eventUri; articles
+without one (incl. every duplicate-flagged article) stay single-article stories.
 
 Schema per line:
 {
@@ -327,8 +328,41 @@ def convert_gdelt(path):
 
 # ── Event Registry ───────────────────────────────────────────────────────────
 
+def _er_article(r, article_id):
+    source = r.get("source") or {}
+    body = r.get("body") or None
+    return {
+        "article_id": article_id,
+        "stance": "unknown",
+        "bias_rating": "unknown",
+        "source_name": source.get("title") or source.get("uri"),
+        "url": r.get("url"),
+        "date": r.get("dateTimePub") or r.get("dateTime"),
+        "headline": r.get("title"),
+        "description": (lede(body) if body else None),
+        "body_text": body,
+        "lang": r.get("lang"),
+        "paywall": None,
+        "is_featured": False,
+        "news_type": None,
+        "meta": {
+            "uri": r.get("uri"),
+            "source_uri": source.get("uri"),
+            "authors": [a.get("name") for a in (r.get("authors") or []) if a.get("name")],
+            "image": r.get("image") or None,
+            "sentiment": r.get("sentiment"),
+            "relevance": r.get("relevance"),
+            "isDuplicate": r.get("isDuplicate"),
+        },
+    }
+
+
 def convert_eventregistry(path):
-    stories, seen = [], set()
+    """One story per ER event (eventUri = ER's own clustering, taken as ground
+    truth); articles ER did not assign to an event stay single-article stories.
+    ER leaves duplicate-flagged articles out of events, so wire copy carried by
+    many outlets mostly ends up as singletons here."""
+    groups, seen = {}, set()      # key -> raw articles, in file order
     with open(path) as f:
         for line in f:
             if not line.strip():
@@ -338,44 +372,33 @@ def convert_eventregistry(path):
             if not uri or uri in seen:
                 continue
             seen.add(uri)
-            story_id = f"eventregistry__{uri}"
-            source = r.get("source") or {}
-            body = r.get("body") or None
-            articles = [{
-                "article_id": f"{story_id}__a0",
-                "stance": "unknown",
-                "bias_rating": "unknown",
-                "source_name": source.get("title") or source.get("uri"),
-                "url": r.get("url"),
-                "date": r.get("dateTimePub") or r.get("dateTime"),
-                "headline": r.get("title"),
-                "description": (lede(body) if body else None),
-                "body_text": body,
-                "lang": r.get("lang"),
-                "paywall": None,
-                "is_featured": False,
-                "news_type": None,
-                "meta": {
-                    "source_uri": source.get("uri"),
-                    "authors": [a.get("name") for a in (r.get("authors") or []) if a.get("name")],
-                    "image": r.get("image") or None,
-                    "sentiment": r.get("sentiment"),
-                    "relevance": r.get("relevance"),
-                },
-            }]
-            stories.append({
-                "story_id": story_id,
-                "source_dataset": "eventregistry",
-                "story_url": r.get("url"),
-                "date": r.get("dateTimePub") or r.get("dateTime"),
-                "title": (r.get("title") or "").strip(),
-                "story_summary": (lede(body) if body else None),
-                "stance_summaries": {"left": None, "center": None, "right": None},
-                "topics": [],
-                "bias_distribution": None,
-                "meta": {"uri": uri, "isDuplicate": r.get("isDuplicate")},
-                "articles": articles,
-            })
+            key = ("event", r["eventUri"]) if r.get("eventUri") else ("article", uri)
+            groups.setdefault(key, []).append(r)
+
+    stories = []
+    for (kind, ident), rs in groups.items():
+        rs.sort(key=lambda r: r.get("dateTimePub") or r.get("dateTime") or "")
+        story_id = f"eventregistry__{'event__' if kind == 'event' else ''}{ident}"
+        first = rs[0]
+        body = first.get("body") or None
+        meta = ({"eventUri": ident,
+                 "n_sources": len({(r.get("source") or {}).get("uri") for r in rs})}
+                if kind == "event" else
+                {"uri": ident, "eventUri": None, "isDuplicate": first.get("isDuplicate")})
+        stories.append({
+            "story_id": story_id,
+            "source_dataset": "eventregistry",
+            "story_url": None if kind == "event" else first.get("url"),
+            "date": first.get("dateTimePub") or first.get("dateTime"),
+            # ER event titles need an API call; use the earliest article's headline
+            "title": (first.get("title") or "").strip(),
+            "story_summary": (lede(body) if body else None),
+            "stance_summaries": {"left": None, "center": None, "right": None},
+            "topics": [],
+            "bias_distribution": None,
+            "meta": meta,
+            "articles": [_er_article(r, f"{story_id}__a{i}") for i, r in enumerate(rs)],
+        })
     return stories
 
 

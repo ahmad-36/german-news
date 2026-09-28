@@ -1,8 +1,8 @@
 """German publisher register and name matching.
 
 Extracted from the Ground News scraper so the explorer UI can use it without
-depending on the scraper. Vendored into each repo that needs it
-(news-ground-news, news-explorer) — if you change one, change the other.
+depending on the scraper. Vendored into each folder that needs it
+(ground-news, ui) — if you change one, change the other.
 """
 
 import re

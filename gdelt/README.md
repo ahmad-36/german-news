@@ -1,21 +1,18 @@
-# news-gdelt
+# GDELT collector (`gdelt/`)
 
 GDELT collection, clustering and enrichment for German-language news.
 
-Lives in `news/` alongside its sister repos, each an independent git repo. Split out of
-the former monolithic `news` repo (Sept 2026, now retired to `archive/news`). Sisters:
-[news-ground-news](../news-ground-news), [news-eventregistry](../news-eventregistry),
-[news-explorer](../news-explorer), and
-[muws-allsides-dataset](../muws-allsides-dataset).
+Part of the `news` repository, next to `ground-news/`, `eventregistry/`, `ui/` and
+`analytics/`. AllSides lives in the separate `muws-allsides-dataset` repository.
 
 ## Where data lives
 
-**In this repo, under [`data/`](data) — gitignored, so it is never pushed.** This repo owns
+**In this folder, under [`data/`](data) — gitignored, so it is never pushed.** This folder owns
 `data/gdelt/` (~5.9 GB: the raw article dump, clustered stories, and enrichment).
 
 Nothing here builds a path of its own; everything goes through [paths.py](paths.py).
-No environment variable is needed — `paths.source_dir()` uses this repo's `data/` for
-sources it owns and finds the sibling repo's `data/` for anything it doesn't. Override
+No environment variable is needed — `paths.source_dir()` uses this folder's `data/` for
+sources it owns and finds the sibling folder's `data/` for anything it doesn't. Override
 per run with `--data-dir`, or globally with `$NEWS_DATA_DIR`.
 
 ## ⚠️ Collect bounded, not at scale
@@ -65,8 +62,8 @@ continue. That keeps the compounds; the cost is that `SPD` also matches *SPDR*. 
 ## Keywords
 
 [`keywords/`](keywords/) holds the German seed-term list, shared with
-[news-ground-news](../news-ground-news). See
-[news-source-survey/docs/keywords.md](../news-source-survey/docs/keywords.md) for how the
+`ground-news`. See
+`analytics/docs/keywords_and_apis.md` for how the
 list was built and how it performed.
 
 | file | terms |
@@ -115,7 +112,7 @@ python gdelt_enrich_bulk.py
 - 🟢 **Upside: metadata is openly licensed** — the only source here we may republish.
 
 Detail: [docs/GDELT_NOTES.md](docs/GDELT_NOTES.md) and the
-[provider survey](../news-source-survey/docs/sources.md#gdelt).
+`analytics/docs/sources.md`.
 
 ## Environment
 

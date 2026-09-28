@@ -1,12 +1,9 @@
-# news-ground-news
+# Ground News collector (`ground-news/`)
 
 Ground News scraper, the German discovery pipeline, and the keyword list.
 
-Lives in `news/` alongside its sister repos, each an independent git repo. Split out of
-the former monolithic `news` repo (Sept 2026, now retired to `archive/news`). Sisters:
-[news-gdelt](../news-gdelt), [news-eventregistry](../news-eventregistry),
-[news-explorer](../news-explorer), and
-[muws-allsides-dataset](../muws-allsides-dataset).
+Part of the `news` repository, next to `gdelt/`, `eventregistry/`, `ui/` and
+`analytics/`. AllSides lives in the separate `muws-allsides-dataset` repository.
 
 ## What is human, what is GPT
 
@@ -30,7 +27,7 @@ shows how the label is made. It samples 5 to 10 headlines, or the top article on
 couple of major stories. US survey respondents rate the outlet as a whole from that
 sample, and their ratings are averaged into **one overall score for the publication**. The
 same report says the ratings *"reflect the average judgment of the American people."*
-Details: [news-source-survey/docs/stance_labels.md](../news-source-survey/docs/stance_labels.md).
+Details: `analytics/docs/experiments.md`.
 
 **Summaries and the bias comparison are GPT output, story-level, with partial coverage.**
 The page payload stores them in an object named `chatGptSummaries` (read at
@@ -66,15 +63,15 @@ entities that clustering depends on.
   **"Mohammed Bin Salman"**.
 
 The translation engine and the clustering algorithm are both undocumented. Full write-up:
-[news-source-survey/docs/translation_problem.md](../news-source-survey/docs/translation_problem.md).
+`analytics/docs/experiments.md`.
 
 ## Where data lives
 
-**In this repo, under [`data/`](data) — gitignored, so it is never pushed.** This repo owns
+**In this folder, under [`data/`](data) — gitignored, so it is never pushed.** This folder owns
 `data/ground_news/` and `data/discovery/` (~22 MB).
 
-No environment variable is needed: [paths.py](paths.py) uses this repo's `data/` for the
-sources it owns and finds sibling repos' `data/` for anything else. Every script also
+No environment variable is needed: [paths.py](paths.py) uses this folder's `data/` for the
+sources it owns and finds sibling folders' `data/` for anything else. Every script also
 takes `--data-dir`.
 
 ## Scraping
@@ -102,7 +99,7 @@ corpus.
 ## Keywords
 
 [`keywords/`](keywords/) is the German seed-term list, shared verbatim with
-[news-gdelt](../news-gdelt) where it doubles as a `--keywords-file` filter.
+`gdelt` where it doubles as a `--keywords-file` filter.
 
 | file | contents |
 |---|---|
@@ -115,7 +112,7 @@ corpus.
 the 17 topic pages plus `/top` and `/blindspot` (the default crawl, no keyword involved),
 the 86 search terms, and the 60-name German publisher register in `germanlib.py` that
 decides what counts as German. Full breakdown:
-[keywords.md](../news-source-survey/docs/keywords.md).
+`analytics/docs/keywords_and_apis.md`.
 
 **The empirical rule behind the list:** proper nouns survive Ground News' English
 translation and find hits in German (`Bundeswehr` → 10 events); generic/abstract German
@@ -125,7 +122,7 @@ concepts into English and qualify them with "Germany".**
 
 82 of 86 terms returned results; the 4 that returned nothing are marked `# ZERO` in the
 files. Full write-up, including how to extend the list:
-[news-source-survey/docs/keywords.md](../news-source-survey/docs/keywords.md).
+`analytics/docs/keywords_and_apis.md`.
 
 ## Discovery pipeline
 
@@ -142,15 +139,15 @@ Searches each seed term, scrapes what it finds, then computes new candidate tags
 ## UI
 
 `ui/topic_discovery.py` is the interactive Streamlit driver for the above. It lives here
-rather than in [news-explorer](../news-explorer) because it drives *this* scraper.
+rather than in `ui` because it drives *this* scraper.
 
 ```bash
 streamlit run ui/topic_discovery.py
 ```
 
 > **Known duplication:** `ui/common.py` and `germanlib.py` are vendored copies also
-> present in [news-explorer](../news-explorer). If you change one, change the other. They
-> were duplicated rather than packaged so each repo runs standalone.
+> present in `ui`. If you change one, change the other. They
+> were duplicated rather than packaged so each folder runs standalone.
 
 ## Known limits
 
@@ -169,7 +166,7 @@ streamlit run ui/topic_discovery.py
   `bias_comparison`, plus the LLM-written `generated_headline`. The *labels* are not. See
   [What is human, what is GPT](#what-is-human-what-is-gpt).
 - **Translation happens before clustering**, and it loses entities —
-  [the write-up](../news-source-survey/docs/translation_problem.md).
+  `analytics/docs/experiments.md`.
 - Language tags are unreliable (Luxembourgish tagged `de`).
 
 ## Environment

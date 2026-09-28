@@ -220,7 +220,6 @@ div[class*="st-key-feed_random_btn"] button:hover {
 # dataset the sidebar has selected — no source-specific pages.
 dataset_statistics = st.Page("dataset_statistics.py", title="Dataset Statistics", icon="📊")
 story_viewer = st.Page("story_viewer.py", title="Story Feed", icon="📖")
-topic_discovery = st.Page("topic_discovery.py", title="Topic Discovery", icon="🔎")
 
 st.markdown(
     '<div class="gn-masthead">'
@@ -230,7 +229,7 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-pg = st.navigation([story_viewer, dataset_statistics, topic_discovery], position="top")
+pg = st.navigation([story_viewer, dataset_statistics], position="top")
 
 # ── SIDEBAR: DATA SOURCE ─────────────────────────────────────────────────
 

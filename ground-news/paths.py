@@ -4,8 +4,8 @@ Nothing else in the repo — scrapers, unify, UI — may build a data path of it
 own. The default root is <repo>/data, which is gitignored: each repo carries
 the dataset it produces, and nothing large is ever committed.
 
-Repos also need sources they do not produce (news-explorer unifies all four),
-so `source_dir()` falls back to the sibling repo that owns a source when this
+Repos also need sources they do not produce (ui/ unifies all four),
+so `source_dir()` falls back to the sibling folder that owns a source when this
 repo has no copy — see SOURCE_REPO below. That makes the common case need no
 configuration at all.
 
@@ -71,11 +71,11 @@ def add_data_dir_arg(parser: argparse.ArgumentParser) -> None:
 #: data/ directory. The explorer has to read all of them to unify, so it needs
 #: to find data it does not own.
 SOURCE_REPO = {
-    "gdelt": "news-gdelt",
-    "ground_news": "news-ground-news",
-    "discovery": "news-ground-news",
-    "eventregistry": "news-eventregistry",
-    "unified": "news-explorer",
+    "gdelt": "gdelt",
+    "ground_news": "ground-news",
+    "discovery": "ground-news",
+    "eventregistry": "eventregistry",
+    "unified": "ui",
 }
 
 
@@ -84,8 +84,8 @@ def source_dir(source: str) -> str:
 
     Each repo holds its own data/ (gitignored), so the local path is used when
     it exists — that is always the right answer for the repo that produces the
-    source. When it does not exist we look in the sibling repo that owns the
-    source, which is how news-explorer reaches the collectors' output without a
+    source. When it does not exist we look in the sibling folder that owns the
+    source, which is how ui/ reaches the collectors' output without a
     shared data root. $NEWS_DATA_DIR still overrides everything.
 
     Falls back to the local path so that *writes* land under this repo rather
@@ -104,7 +104,7 @@ def source_dir(source: str) -> str:
 def unified_dir() -> str:
     """Where unify.py writes the unified-format datasets the UI reads.
 
-    Owned by news-explorer; resolved through source_dir so the other repos can
+    Owned by ui/; resolved through source_dir so the other repos can
     read it too."""
     return source_dir("unified")
 
@@ -135,11 +135,12 @@ QBIAS_DIR_ENV = "QBIAS_DIR"
 def qbias_dir() -> str:
     """Root of the Qbias checkout (holds the AllSides crawl + article bodies).
 
-    $QBIAS_DIR wins. Otherwise walk up from this repo looking for qbias/Qbias,
+    $QBIAS_DIR wins. Otherwise walk up from this repo looking for
+    muws-allsides-dataset/ (the flattened Qbias checkout, Sept 2026),
     rather than assuming a fixed depth: these repos sit one level deeper than
     they used to (~/news/<repo> rather than ~/<repo>), and a hard-coded
     os.path.dirname(REPO_ROOT) silently resolved to the wrong place after the
-    move. Falls back to ~/qbias/Qbias so the path is still well-defined when
+    move. Falls back to ~/muws-allsides-dataset so the path is still well-defined when
     nothing is found."""
     env = os.environ.get(QBIAS_DIR_ENV)
     if env:
@@ -149,10 +150,10 @@ def qbias_dir() -> str:
         here = os.path.dirname(here)
         if not here or here == os.sep:
             break
-        cand = os.path.join(here, "qbias", "Qbias")
-        if os.path.isdir(cand):
+        cand = os.path.join(here, "muws-allsides-dataset")
+        if os.path.isdir(os.path.join(cand, "allsides_crawl")):
             return os.path.abspath(cand)
-    return os.path.abspath(os.path.join(os.path.expanduser("~"), "qbias", "Qbias"))
+    return os.path.abspath(os.path.join(os.path.expanduser("~"), "muws-allsides-dataset"))
 
 
 #: the AllSides repo, a sibling of this one under news/

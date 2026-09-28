@@ -1,266 +1,191 @@
-# Per-Source Reference
+# Data Sources
 
-For each provider: **how scraping works**, **what you get**, and **what the limits are**.
-All figures measured against the data on disk (Jan–Aug 2026, ~7.3 GB).
-Every limit noted here also appears, with status, in the [problems register](problems.md).
+For each provider: how it is collected, what you get, and its limits. The last two
+sections list ten further providers and where the four can be joined. Figures are measured
+on the data on disk (Jan–Aug 2026).
 
 ---
 
-## AllSides
+## Where each provider sits in the pipeline
 
-> US political news, presented as left/center/right triplets per story.
-> Repo: [`muws-allsides-dataset`](../../../muws-allsides-dataset) — scraper and data, `allsides_crawl/output/` + `multi_source_scrape/output/`
+Target pipeline: **① collect → ② filter (language, country, topic) → ③ topic clustering →
+④ same-event clustering → ④b split each story by stance → ⑤ downstream tasks** (article /
+topic / stance summaries, stance comparison, stance prediction). A diagram is in
+[../assets/pipeline.svg](../assets/pipeline.svg).
 
-### How scraping works
+| stage | GDELT | Event Registry | Ground News | AllSides |
+|---|---|---|---|---|
+| ① collect | by date (census or filtered) | by date + language | trending pages | by date |
+| ② filter | **ours** | provider (rich filters) | provider (topic pages) | none (US politics only) |
+| ③ topics | GKG themes (machine, noisy) | **not collected** (default `returnInfo`) | machine tags, computed on translated text | human editorial tags |
+| ④ event clusters | **ours** (title similarity) | `eventUri` on only 16.5% | theirs, **method undocumented** | editorial |
+| ④b stance split | impossible (no labels) | impossible (no labels) | per-outlet labels | per-outlet labels |
+| ⑤ downstream | — | — | ships **GPT-generated** stance summaries | — |
 
-**Axis: by date.** AllSides publishes "headline roundup" story pages; the scraper walks
-them over an explicit date range. This is the cleanest historical interface of the four
-providers — you ask for a window and you get it.
+---
+
+## GDELT: the backbone for German story structure
+
+**Collection.** The raw 15-minute GKG dump files (every slot since 2015-02-19) are
+downloaded and filtered locally. We use this route for all our data. The alternatives are
+BigQuery (1 TB/month free, never needed) and the DOC API (capped at 250 results with no
+pagination, so it is not usable for volume).
 
 ```bash
-python allsides_scraper.py --start 2025-01-01 --end 2026-12-31 --out-dir output
+python gdelt_dump_pull.py --start 2026-01-05 --end 2026-01-12 --keywords-file keywords/german_politics.txt
+python gdelt_cluster_bulk.py      # cluster titles into stories
+python gdelt_enrich_bulk.py       # fetch body, og:image and caption from each outlet
 ```
 
-Two stages:
-
-1. **Roundup crawl** → `allsides_<start>_<end>.jsonl`, one record per story, plus an
-   `images/` folder. Writes incrementally, so a crash loses only in-flight stories;
-   re-running resumes and skips completed stories (`--fresh` forces a full re-scrape).
-2. **Full-text scrape** → one bespoke scraper per publisher domain, because each outlet
-   needs custom HTML parsing:
-   ```bash
-   python news_scrapers/<domain>.py --mode scrape   # new articles
-   python news_scrapers/<domain>.py --mode patch    # retry failures
-   python news_scrapers/<domain>.py --mode refresh  # update images/captions
-   python news_scrapers/<domain>.py --mode audit    # coverage report
-   ```
-
-There is **no search endpoint** — you cannot ask AllSides for "articles about Ukraine".
-Topic is an attribute of a story you have already fetched, not a crawl axis.
-
-### What you get
+**Clustering is ours.** It is single-pass and bucketed by day. Similarity is
+`SequenceMatcher` on normalised titles with threshold 0.65, and a story must have at least
+3 outlets. Outlets from the same media group (the Ippen network: merkur.de, tz.de, hna.de,
+…) count as one outlet first, so syndicated copies cannot inflate a story's breadth.
 
 | | |
 |---|---|
-| Stories / articles | 1,919 / 68,352 slots — **8,072 unique URLs** |
-| Median outlets per story | 22 (max 48) |
-| Headline, URL, description | 100% / 100% / 99.4% |
-| **Body text** | **17.3%** (11,838), median 3,993 chars |
-| **Images** | **68.9%** have an image URL (47,122). Downloaded: 2,448 stance thumbnails + 8,268 article images, 5,306 with captions. See [images.md](images.md) |
-| Stance label | 99.9% (68,290), 7-point scale |
-| Topics | 100%, human-readable (`Donald Trump`, `Immigration`, `Economy And Jobs`) |
-| Story summary | 100%, editorial |
-| Language tag | absent |
+| Stories (3+ outlets) / articles | 173,388 / 1,408,753, all German, 474 domains |
+| Outlets per story | median 5, max 77; **3,811 stories reach 30+ outlets** |
+| Body text | none from GDELT; our enrichment crawl fetched **154,084** |
+| Images | none from GDELT; our crawl found **145,078** `og:image` URLs and 88,992 captions (not downloaded) |
+| Topics | GKG themes on every article (machine-assigned, high recall, low precision) |
+| Stance | none |
 
-### Limits
-
-- 🔴 **US-only — zero German articles.** Disqualifying for the German dataset.
-- 🔴 **~8× article inflation** — 68,352 slots, 8,072 unique URLs. Deduplicate before
-  computing anything per-article; this has already produced one wrong headline result.
-- 🔴 **Labels are per outlet**, so the corpus is balanced by construction (22,967 / 22,669
-  / 22,716) — a layout artefact, not a property of the news.
-- ⚠️ Bodies on only 17.3%, and each outlet needs its own scraper.
-- ⚠️ `is_featured: false` articles come from sidebars and may be off-story.
-- ⚠️ Scraped content — the usual redistribution caveats.
+**Limits.** No body text and no bias signal. The title-only clusterer misses about
+two-thirds of same-event pairs (see [experiments.md §5](experiments.md#5-event-clustering)).
+A story that crosses midnight splits into two. The dump route has no publisher country.
+On the plus side, GDELT is **openly licensed** and is the only source here we may republish.
 
 ---
 
-## Ground News
+## Event Registry: clean full German text
 
-> Worldwide stories with per-outlet bias ratings, blindspot flags and AI stance summaries.
-> Scraper: `scrapers/ground_news/scraper.py` in [`ahmad-36/news`](https://github.com/ahmad-36/news)
-
-### How scraping works
-
-**Axis: by trending, not by date.** The scraper crawls the homepage, `/top`, `/blindspot`
-and ~20 `/interest/<topic>` pages, keeps stories with 3+ sources, and merges into
-`data/ground_news/ground_news.jsonl`. There is **no date endpoint** — you get what is
-trending when you run it.
+**Collection.** An authenticated, paginated REST API. We queried
+`lang="deu"` + publisher in Germany + a date window, and set `allowUseOfArchive=False` so a
+mistyped date can never spend archive tokens.
 
 ```bash
-uv run python scrapers/ground_news/scraper.py                      # trending snapshot
-uv run python scrapers/ground_news/scraper.py --query "ukraine"    # subject search
-uv run python scrapers/ground_news/scraper.py --from-date 2026-03-01 --to-date 2026-03-15
-                                                                   # historical via Wayback
-uv run python scrapers/ground_news/scraper.py --refresh-existing   # re-fetch known stories
+python eventregistry_german_sources.py --skip-discovery --days 7 --pull 5000
 ```
-
-Historical mode replays **Wayback Machine snapshots** of the listing pages — coverage is
-best-effort and gappy, and this is the only route to the past. Requires `curl_cffi` Chrome
-impersonation to get past bot detection; no browser needed.
-
-### What you get
 
 | | |
 |---|---|
-| Stories / articles | 894 / 46,030 |
-| Median outlets per story | 16 (max 1,166) |
-| German articles | 5,563 (12.1%), in 537 of 894 stories |
-| Headline, dek | 100% / 98.1% (real editorial dek) |
-| **Body text** | **0%** — headline + dek only |
-| **Images** | **none** — no image field exists in the record |
-| Stance label | 62.6% (28,833); **37.4% is the literal string `unknown`** |
-| Per-stance summaries | 49.3% (441/894; all three sides 209) — **GPT-generated** |
-| `bias_comparison` paragraph | 499/894 — **GPT-generated** |
-| Blindspot flag | 89 stories |
-| Topics | 99.8%, human-readable |
-| Paywall flag | 5,270 articles flagged |
-| Unique domains | **5,477** — a worldwide long tail |
+| Articles | 129,628 from 320 sources, 2026-07-30 → 08-07 |
+| Body text | **100%**, median 2,111 characters |
+| Images | 98.6% have an image URL; no captions |
+| Authors | yes |
+| Topics | **none**: the default `returnInfo` excludes concepts and categories |
+| Stance | none |
+| Events | 21,416 articles (16.5%) carry an `eventUri`, forming 2,392 multi-article stories |
 
-### Limits
-
-- 🔴 **Tiny** — 894 stories in ~14 months (~2/day). A label source, not a corpus.
-- 🔴 **No body text and no images at all** — headline + dek only.
-- 🔴 **Only 12.1% German.**
-- 🔴 **Labels are per outlet, US-framed and contested** — averaged from MBFC, Ad Fontes and
-  AllSides (all US organisations, American left–right axis), which disagree on **32.1%**.
-  37.4% are the literal string `unknown`, concentrated on the German tail.
-- ⚠️ **Summaries are GPT-generated** (`summary_*` and `bias_comparison` come from Ground
-  News' `chatGptSummaries` object; `generated_headline` is also LLM-written). The labels
-  are not. `summary_right` is often empty when left and center are populated.
-- ⚠️ **Translation runs before clustering** and loses entities.
-- ⚠️ Language tags are unreliable (Luxembourgish tagged `de`); factuality field is 0% populated.
+**Limits.**
+- 🔴 **The terms of service forbid redistribution**, including metadata. The data can be used
+  for internal evaluation only.
+- 🔴 **461 of 2,000 free tokens are left.** Tokens never renew, the free tier only reaches
+  back 30 days, and one 7-day German pull costs about 1,790 tokens.
+- The duplicate flag removes wire stories from events. Of 59,088 duplicate-flagged
+  articles, only 2 have an `eventUri`, so one dpa story carried by 48 outlets never forms a
+  cluster. Grouping by normalised title would turn 51.7% of articles into multi-source
+  stories at no API cost.
+- `sueddeutsche.de` returns only 300-character teasers.
 
 ---
 
-## GDELT
+## Ground News: the only stance labels and summaries
 
-> A complete open census of world news metadata. The backbone of the German dataset.
-> Scrapers: `scrapers/gdelt/` in [`ahmad-36/news`](https://github.com/ahmad-36/news)
-
-### How scraping works
-
-Three routes, and **only one of them is usable for volume**:
-
-| Route | Script | Verdict |
-|---|---|---|
-| **Raw 15-min dumps** | `gdelt_dump_pull.py` | ✅ **the one to use** — complete, no result cap |
-| BigQuery | `gdelt_bq_pull.py` | ⚠️ 1 TB/month free sandbox; `Extras` is the expensive column |
-| DOC API | `gdelt_collect.py` | 🔴 **capped at 250 results, no pagination** — do not use for volume |
-
-**Axis: by date** — every 15-minute GKG slot since **2015-02-19** is a downloadable file.
-The Jan–Aug 2026 pull took 20,350 of 20,350 slots with zero failures. Filtering by language
-and country is **ours to do**, on the dump.
-
-```bash
-python scrapers/gdelt/gdelt_dump_pull.py       # bulk pull of the raw dumps
-python scrapers/gdelt/gdelt_cluster_bulk.py    # title-similarity clustering
-python scrapers/gdelt/gdelt_enrich_bulk.py     # fetch bodies + images from the outlets
-```
-
-Clustering is ours: greedy single-pass, bucketed by day, blocked on a rare-token inverted
-index, similarity = `SequenceMatcher` over normalised titles, **threshold 0.65**,
-`--min-outlets 3`. Media-group domains (the Ippen network — merkur.de, tz.de, hna.de,
-fr.de, …) collapse to one outlet first, so syndication cannot fake breadth.
-
-The DOC API's filter set is genuinely rich (`theme`, `tone`, `near`, `repeat`, image
-operators) — it is only the 250-result cap that makes it useless for collection. Full
-reference: [api_filters.md](api_filters.md).
-
-### What you get
+**Collection.** There is no API and no date endpoint. The scraper walks the homepage,
+`/top`, `/blindspot` and 17 `/interest/<topic>` pages, and supports keyword search
+(`--query`). Historical data is only available through Wayback Machine replay, which is
+best-effort. Requests need `curl_cffi` Chrome impersonation to get past bot detection.
 
 | | |
 |---|---|
-| Articles / stories (3+ outlets) | 1,408,753 / 173,388 |
-| German | **100%** — 474 German domains |
-| Median outlets per story | 5 (mean 6.43, max 77) |
-| **Stories reaching 30+ independent outlets** | **3,811** ← the headline asset |
-| Headline, URL | 100% |
-| **Body text** | **0% native.** Our own crawl has fetched **154,084** German bodies |
-| **Images** | **0% native.** Our crawl has **145,078** `og:image` URLs + **88,992 captions** |
-| Themes | 100%, GKG V2Themes (machine-assigned) |
-| Stance label | **none** |
-| Time span | 2026-01 → 2026-08 in our pull; available from 2015-02-19 |
+| Stories / articles | 894 / 46,030 from 5,477 domains (about 2 stories per day) |
+| German | 5,563 articles (12.1%) |
+| Body text | none (headline + dek only) |
+| Images | none |
+| Stance label | 62.6% labelled; **37.4% are literally `unknown`** |
+| Per-stance summaries | 441 stories (49.3%), **GPT-generated** |
+| Also | blindspot flag (89 stories), paywall flag, topics |
 
-> **Note:** the enrichment file has grown to **213,532 records** (154,084 bodies,
-> 145,078 images, 88,992 captions). The unified files were built before most of this
-> existed and currently attach almost none of it — re-running `unify.py` costs nothing and
-> fixes it.
+**What is human and what is GPT:**
+- **Bias labels**: human, per outlet. They are averaged from three US agencies (Media
+  Bias/Fact Check, Ad Fontes, AllSides), which **disagree on 32.1%** of rated articles.
+- **`summary_left/center/right`, `bias_comparison`, `generated_headline`**: GPT. The page
+  stores them in an object named `chatGptSummaries`.
+- **Clustering**: Ground News' own, and undocumented.
 
-### Limits
-
-- 🔴 **No body text and no bias signal.** Bodies need our own second crawl: 154,084 fetched
-  of 1.4M.
-- 🟠 **Clustering is ours and shallow** — `SequenceMatcher` at 0.65 within a day bucket.
-  Different headlines never merge; a story crossing midnight splits in two.
-- ⚠️ **Titles live in the `Extras` XML**, not a GKG column — dropping `Extras` to save
-  BigQuery quota silently destroys clustering.
-- ⚠️ **No publisher country on the dump route** — all stories carry `countries: ["?"]`.
-- ⚠️ Themes are high-recall/low-precision, and the top ones are artefacts of our own
-  language filter.
-- ⚠️ Indexes section fronts and homepages; `--min-outlets 3` is why 173,388 of 2,015,373
-  stories survive.
-- 🟢 **Openly licensed** — the only source here we may republish.
+**Limits.** It is too small to be a corpus, but it is useful as a label and evaluation set.
+It machine-translates 41% of articles and the translation deletes entities (see
+[experiments.md §4](experiments.md#4-ground-news-translation-deletes-entities)).
+Luxembourgish is mislabelled as `de`. German articles are identified only by matching
+publishers against a 60-name list (`germanlib.py`).
 
 ---
 
-## Event Registry (newsapi.ai)
+## AllSides: the template, but no German
 
-> Full-text German articles via a clean REST API. Legally unpublishable.
-> Scraper: `scrapers/eventregistry/eventregistry_german_sources.py`
-
-### How scraping works
-
-**Axis: by date + language**, through an authenticated, paginated REST API. Easiest
-integration of the four by a wide margin.
-
-```bash
-python scrapers/eventregistry/eventregistry_german_sources.py \
-    --skip-discovery --days 7 --pull 5000
-```
-
-Needs `EVENTREGISTRY_API_KEY` or `~/.eventregistry_key`. Costs **1 token per 100-article
-page**. The script sets `allowUseOfArchive=False` as a guard against accidentally spending
-archive tokens.
-
-The filter set is the richest of any provider here — `lang`, `conceptUri`, `categoryUri`,
-`sourceUri`, `sourceLocationUri`, `authorUri`, `startSourceRankPercentile`, `dataType`
-(news/pr/blog), plus `ignore*` negations of every one. Full reference:
-[api_filters.md](api_filters.md).
-
-### What you get
+**Collection.** The crawler walks AllSides' headline-roundup pages over a date range. A
+separate scraper for each outlet then fetches full article text and images.
 
 | | |
 |---|---|
-| Articles | 129,628 (one 7-day window, 320 sources) |
-| German | **100%** |
-| **Body text** | **100%**, median 2,111 chars, clean UTF-8 |
-| **Images** | **98.6%** image URL |
-| Image captions | none |
-| Authors | ✅ |
-| Description | 100%, but **derived** from the body — not a real dek |
-| Stance label | **none** |
-| Topics | **none collected** |
-| Time span | 2026-07-30 → 2026-08-07; peak 24,285 articles/day |
+| Stories / article slots | 1,919 / 68,352, of which **only 8,072 are unique URLs** |
+| Outlets per story | median 22 |
+| Body text | 17.3% (11,838) |
+| Images | **10,716 files on disk (8.0 GB)**: 2,448 stance thumbnails and 8,268 article images (5,306 with captions) |
+| Stance label | 99.9%, 7-point, per outlet |
+| Topics, summary | 100%, human editorial |
 
-### Limits
-
-- 🔴 **Redistribution prohibited.** The ToS claim even structured metadata. Internal
-  evaluation only — the blocking constraint on any public release.
-- 🔴 **461 of 2,000 free tokens left**; 30-day window; archive costs 5 tokens/year. A second
-  7-day pull is unaffordable.
-- 🔴 **Not a story dataset** — 83.5% of articles have no `eventUri`, and `unify.py` drops the rest, so the unified file is 100% singletons. The raw pull does still hold 2,729 events over 21,416 articles; the signal exists upstream and is discarded downstream.
-- 🔴 **The duplicate flag deletes the best clusters** — one dpa item at 48 independent
-  outlets is excluded from the event graph. Recoverable locally by title-clustering (51.7%
-  of articles, zero API cost).
-- ⚠️ **Zero topics collected** — default `returnInfo` excludes concepts and categories.
-- ⚠️ `lang="deu"` blocks cross-lingual coverage; `sueddeutsche.de` returns 300-char teasers;
-  601 articles carry stale pre-2026 publisher timestamps (filter on `dateTime`).
+**Limits.** It is US-only, so there are **no German articles**. Articles are inflated
+about 8× because sidebar articles repeat across story pages, so always deduplicate before
+counting. Labels are per outlet, and the classes are balanced only because the page layout
+shows one article per side.
 
 ---
 
-## Cross-provider joins
+## Images: where they are
 
-The 56 domains present in all three German-capable providers are where they can be joined:
+| | files on disk | URLs | captions |
+|---|---|---|---|
+| AllSides | **10,716 files** (`muws-allsides-dataset/*/output/images/`) | 47,122 | 5,306 |
+| GDELT | none | 145,078 (from our crawl) | 88,992 |
+| Event Registry | none | 98.6% of articles | none |
+| Ground News | none | none | none |
 
-| pair | shared domains |
+GDELT image URLs will stop working as outlets change their CDNs, so they should be
+downloaded soon if they are needed. The unified format keeps image URLs only, in each
+article's `meta`.
+
+---
+
+## Other providers checked (not used)
+
+| provider | what it offers | German | stance labels | access |
+|---|---|---|---|---|
+| **EMM** (EU JRC) | 80 languages, **clusters per language and then links clusters across languages** | yes | framing detection, no left/right | ask the JRC |
+| **Ad Fontes Media** | **article-level** ratings by 3+ human analysts (bias −42…+42) | probably not | **per article** | commercial |
+| **CC-NEWS** | Common Crawl news HTML since 2016 | yes | none | **free, openly licensed** |
+| **Media Cloud** | academic archive, about 20 languages | yes | none | free API |
+| **NewsCatcher** | commercial API with real event clustering | yes | none | paid |
+| Perigon, Webz.io | commercial full-text APIs | yes | none | paid |
+| MBFC, NewsGuard | outlet ratings (bias / trust) | rates German outlets | per outlet | paid |
+| NELA-GT | static research dataset | no (US only) | per outlet | free |
+
+**Worth acting on:** Ad Fontes, the only source of article-level labels; CC-NEWS, the only
+source of German full text we could republish; EMM, which already uses the cluster-then-link
+approach for multiple languages.
+
+---
+
+## Joining the providers
+
+| providers | shared domains |
 |---|---|
-| Event Registry ∩ GDELT | **163** |
+| Event Registry ∩ GDELT | 163 |
 | Ground News ∩ GDELT | 114 |
 | Event Registry ∩ Ground News | 80 |
-| **all three German methods** | **56** |
+| **all three** | **56** (about 30% of each German pipeline) |
 
-Those 56 outlets account for ~28–30% of both German pipelines. The join that matters:
-**take a GDELT cluster → pull the matching Event Registry body → attach the Ground News
-outlet bias label.** That is the only route to a German dataset with structure, text and
-labels at the same time.
+The join that matters: **GDELT story → Event Registry body → Ground News outlet label.**
+It is the only route to German stories that have structure, text and labels at once.

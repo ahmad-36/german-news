@@ -4,3 +4,11 @@ __pycache__/
 .DS_Store
 *.log
 scratch/
+
+# Data never goes in git (same rule as the collector repos)
+data/
+*.jsonl
+
+# Secrets
+.env
+.eventregistry_key

@@ -1,30 +1,26 @@
-# news-explorer
+# Unified format and explorer UI (`ui/`)
 
 The cross-source layer: one unified format for every provider, and one Streamlit UI that
 reads it.
 
-Lives in `news/` alongside its sister repos, each an independent git repo. Split out of
-the former monolithic `news` repo (Sept 2026, now retired to `archive/news`). The
-collectors now live in
-[news-gdelt](../news-gdelt), [news-ground-news](../news-ground-news),
-[news-eventregistry](../news-eventregistry) and
-[muws-allsides-dataset](../muws-allsides-dataset).
-This repo consumes what they produce.
+Part of the `news` repository. It consumes what the collector folders produce:
+`gdelt/`, `ground-news/`, `eventregistry/`, plus AllSides from the separate
+`muws-allsides-dataset` repository.
 
 ## Where data lives
 
-**In this repo, under [`data/`](data) — gitignored, so it is never pushed.** This repo owns
+**In this folder, under [`data/`](data) — gitignored, so it is never pushed.** This folder owns
 `data/unified/` (~1.3 GB), the output of `unify.py`.
 
-Its *inputs* live in the collector repos, and [paths.py](paths.py) finds them
+Its *inputs* live in the collector folders, and [paths.py](paths.py) finds them
 automatically — no environment variable required:
 
 ```
 data/unified/                            ← written here
-../news-gdelt/data/gdelt/                ← read from the sibling
-../news-ground-news/data/ground_news/    ← read from the sibling
-../news-eventregistry/data/eventregistry/← read from the sibling
-../muws-allsides-dataset/output/          ← read from the sibling
+../gdelt/data/gdelt/                ← read from the sibling
+../ground-news/data/ground_news/    ← read from the sibling
+../eventregistry/data/eventregistry/← read from the sibling
+~/muws-allsides-dataset/allsides_crawl/output/ + multi_source_scrape/output/  ← read from here
 ```
 
 ## Raw vs unified — which files are which
@@ -34,9 +30,9 @@ Each collector repo's `data/` holds that source's **raw, native-shape** output. 
 
 | file | shape |
 |---|---|
-| `../news-gdelt/data/gdelt/gdelt_stories_de_min3.jsonl` | raw — `n_outlets`, `probes`, `seendate`, `socialimage`, `themes` |
-| `../news-ground-news/data/ground_news/ground_news.jsonl` | raw — `sources`, `summary_left`, `source_bias`, `dek` |
-| `../news-eventregistry/data/eventregistry/articles_germany.jsonl` | raw — one flat article per line |
+| `../gdelt/data/gdelt/gdelt_stories_de_min3.jsonl` | raw — `n_outlets`, `probes`, `seendate`, `socialimage`, `themes` |
+| `../ground-news/data/ground_news/ground_news.jsonl` | raw — `sources`, `summary_left`, `source_bias`, `dek` |
+| `../eventregistry/data/eventregistry/articles_germany.jsonl` | raw — one flat article per line |
 | **`data/unified/unified_*.jsonl`** | **unified — `articles[]` each with `stance`, `bias_rating`, `body_text`, `meta`** |
 
 **Ground News provenance carries into unified.** In `unified_ground_news.jsonl`,
@@ -44,7 +40,7 @@ Each collector repo's `data/` holds that source's **raw, native-shape** output. 
 is LLM-written. Article `stance` is a **human, outlet-level, US-framed** label. For
 translated articles, `headline` is Ground News' English machine translation, and the
 original is in `meta.original_title`. Details:
-[news-ground-news → What is human, what is GPT](../news-ground-news/README.md#what-is-human-what-is-gpt).
+the `ground-news` README, section "What is human, what is GPT".
 
 The UI only ever reads the unified files. Raw is kept as the archive, because unification is
 lossy: source-specific fields survive only inside `meta`, so a schema change is a cheap
@@ -113,12 +109,12 @@ switches between sources without changing pages.
 The picker defaults to `unified_ground_news.jsonl`; `unified_all.jsonl` is ~1.8 GB and is
 sorted last so it is chosen deliberately.
 
-> The **Topic Discovery** page moved to [news-ground-news](../news-ground-news), because
+> The **Topic Discovery** page moved to `ground-news`, because
 > it drives that scraper rather than reading the unified format.
 
 > **Known duplication:** `ui/common.py` and `germanlib.py` are vendored copies also
-> present in news-ground-news. If you change one, change the other. They were duplicated
-> rather than packaged so each repo runs standalone.
+> present in ground-news. If you change one, change the other. They were duplicated
+> rather than packaged so each folder runs standalone.
 
 ## Known caveats in the unified data
 
@@ -126,9 +122,9 @@ sorted last so it is chosen deliberately.
   because the same article is reused across story pages via the "More from the
   Left/Center/Right" sidebars. **Deduplicate by URL before computing any per-article
   statistic.** This has already produced one materially wrong result — see
-  [the write-up](../news-source-survey/docs/stance_labels.md#4-experiment-3--a-correction-the-eval-set-is-42-duplicated).
+  `analytics/docs/experiments.md`.
 - `is_featured: false` AllSides articles come from those sidebars and may be off-story.
-- Event Registry stories are **100% singletons**; its `eventUri` is dropped by `unify.py`.
+- Event Registry stories are grouped by ER's own `eventUri`; only 16.5% of articles have one, so 108,549 of 110,941 stories are still single-article.
 - Ground News `stance` derives from `source_bias`, ~37% `unknown`, and is **outlet-level**.
 - Event Registry's `story_summary` is *derived* (`lede(body)`), not a real summary.
 
@@ -138,7 +134,7 @@ sorted last so it is chosen deliberately.
   strategies measured against the data on disk
 - [docs/german_news_strategy_comparison.md](docs/german_news_strategy_comparison.md) —
   the earlier three-way comparison; GDELT figures there are superseded
-- [news-source-survey](../news-source-survey) — the written provider analysis
+- `analytics` — the written provider analysis
 
 ## Environment
 

@@ -1,11 +1,8 @@
-# news-eventregistry
+# Event Registry collector (`eventregistry/`)
 
 Event Registry (newsapi.ai) pull for full-text German articles.
 
-Lives in `news/` alongside its sister repos, each an independent git repo. Split out of
-the former monolithic `news` repo (Sept 2026, now retired to `archive/news`). Sisters:
-[news-gdelt](../news-gdelt), [news-ground-news](../news-ground-news),
-[news-explorer](../news-explorer).
+Part of the `news` repository, next to `gdelt/`, `ground-news/`, `ui/` and `analytics/`.
 
 > ## ⚠️ Read this before collecting
 >
@@ -20,7 +17,7 @@ the former monolithic `news` repo (Sept 2026, now retired to `archive/news`). Si
 
 ## Where data lives
 
-**In this repo, under [`data/`](data) — gitignored, so it is never pushed.** This repo owns
+**In this folder, under [`data/`](data) — gitignored, so it is never pushed.** This folder owns
 `data/eventregistry/` (~201 MB). Given the ToS above, that gitignore is doing real work:
 this data must not end up in a pushed commit.
 
@@ -63,11 +60,11 @@ almost none of it:
    `returnInfo` excludes `concepts` and `categories`. A scraper defect, not a provider
    limit, but fixing it costs tokens.
 
-Full reference: [news-source-survey/docs/api_filters.md](../news-source-survey/docs/api_filters.md).
+Full reference: `analytics/docs/keywords_and_apis.md`.
 
 ## Known limits
 
-- **Not a story dataset.** 100% singletons after unification; 83.5% have no `eventUri`.
+- **Not a story dataset.** 83.5% of articles have no `eventUri`, so after unification 108,549 of 110,941 stories are single-article.
 - **The duplicate flag destroys the interesting clusters.** Of 59,088 articles flagged
   `isDuplicate: true`, exactly **2** carry an `eventUri` — up to **48 independent German
   outlets** carrying one dpa wire item get deleted from the event graph.

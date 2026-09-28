@@ -4,14 +4,14 @@ Reproduce the measurements in `docs/`.
 
 | Script | Reproduces | Runs where |
 |---|---|---|
-| `translation_audit.py` | [docs/translation_problem.md](../docs/translation_problem.md) | anywhere — stdlib only |
-| `outlet_outlier_check.py` | [docs/stance_labels.md](../docs/stance_labels.md) §3 | **SLURM GPU** |
-| `dedup_impact.py` | [docs/stance_labels.md](../docs/stance_labels.md) §4 | CPU, needs scikit-learn |
+| `translation_audit.py` | [docs/experiments.md §4](../docs/experiments.md) | anywhere — stdlib only |
+| `outlet_outlier_check.py` | [docs/experiments.md §3](../docs/experiments.md) | **SLURM GPU** |
+| `dedup_impact.py` | [docs/experiments.md §1](../docs/experiments.md) | CPU, needs scikit-learn |
 
 ## translation_audit.py
 
-Self-contained. Needs only `ground_news.jsonl` from
-[`ahmad-36/news`](https://github.com/ahmad-36/news).
+Self-contained. Needs only `ground_news.jsonl`, which the `ground-news/` folder writes to
+`data/ground_news/`.
 
 ```bash
 python scripts/translation_audit.py --data /path/to/data/ground_news/ground_news.jsonl
