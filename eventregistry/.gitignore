@@ -1,0 +1,20 @@
+# Environments / caches
+.venv/
+__pycache__/
+*.pyc
+*.egg-info/
+.ipynb_checkpoints/
+
+# Scraped data (large; lives under $NEWS_DATA_DIR)
+data/
+
+# Run logs
+*.log
+
+# Secrets
+.eventregistry_key
+.env
+.streamlit/secrets.toml
+
+# OS junk
+.DS_Store

@@ -1,0 +1,30 @@
+# GDELT GKG V2Theme codes for German political coverage.
+#
+# Usable as:  gdelt_dump_pull.py --themes-file keywords/german_politics_themes.txt
+#
+# Derived empirically: these are the themes that actually co-occur with the
+# 30-term german_politics.txt keyword filter over 2026-01-05 -> 2026-01-12.
+# The percentage is the share of keyword-matched articles carrying the theme
+# (themes are multi-valued, so these do not sum to 100).
+
+USPEC_POLITICS_GENERAL1        # 162%
+GENERAL_GOVERNMENT             # 146%
+EPU_POLICY_GOVERNMENT          # 142%
+LEADER                         #  88%
+USPEC_POLICY1                  #  80%
+ELECTION                       #  60%
+EPU_POLICY_POLICY              #  59%
+EPU_POLICY_POLITICAL           #  35%
+LEGISLATION                    #  29%
+EPU_POLICY_LAW                 #  29%
+WB_696_PUBLIC_SECTOR_MANAGEMENT #  30%
+TAX_FNCACT_CHANCELLOR          #  71%
+TAX_FNCACT_MINISTER            #  74%
+
+# --- DO NOT USE: high-frequency but uninformative here ---
+# TAX_ETHNICITY_GERMAN          artefact of the German-language filter itself
+# TAX_WORLDLANGUAGES_GERMAN     same
+# ALLIANCE                      fires on 183% of articles; no discriminative value
+# CRISISLEX_CRISISLEXREC        generic crisis-lexicon recall, very low precision
+# CRISISLEX_C07_SAFETY          same
+# UNGP_FORESTS_RIVERS_OCEANS    fires at 62% on political text; miscalibrated
