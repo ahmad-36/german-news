@@ -54,7 +54,7 @@ python gdelt_enrich_bulk.py       # fetch body, og:image and caption from each o
 **Limits.** No body text and no bias signal. The title-only clusterer misses about
 two-thirds of same-event pairs (see [experiments.md §5](experiments.md#5-event-clustering)).
 A story that crosses midnight splits into two. The dump route has no publisher country.
-On the plus side, GDELT is **openly licensed** and is the only source here we may republish.
+On the plus side, GDELT is **openly licensed** and is the only source here that can be republished.
 
 ---
 
@@ -81,8 +81,8 @@ python eventregistry_german_sources.py --skip-discovery --days 7 --pull 5000
 **Limits.**
 - 🔴 **The terms of service forbid redistribution**, including metadata. The data can be used
   for internal evaluation only.
-- 🔴 **461 of 2,000 free tokens are left.** Tokens never renew, the free tier only reaches
-  back 30 days, and one 7-day German pull costs about 1,790 tokens.
+- 🔴 **The free tier is limited:** 2,000 non-renewing tokens (1 per 100-article page) and
+  only the last 30 days. Older data needs the paid archive.
 - The duplicate flag removes wire stories from events. Of 59,088 duplicate-flagged
   articles, only 2 have an `eventUri`, so one dpa story carried by 48 outlets never forms a
   cluster. Grouping by normalised title would turn 51.7% of articles into multi-source

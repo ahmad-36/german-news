@@ -1,141 +1,43 @@
-# Unified format and explorer UI (`ui/`)
+# Unified Format and Explorer
 
-The cross-source layer: one unified format for every provider, and one Streamlit UI that
-reads it.
-
-Part of the `news` repository. It consumes what the collector folders produce:
-`gdelt/`, `ground-news/`, `eventregistry/`, plus AllSides from the separate
-`muws-allsides-dataset` repository.
-
-## Where data lives
-
-**In this folder, under [`data/`](data) — gitignored, so it is never pushed.** This folder owns
-`data/unified/` (~1.3 GB), the output of `unify.py`.
-
-Its *inputs* live in the collector folders, and [paths.py](paths.py) finds them
-automatically — no environment variable required:
-
-```
-data/unified/                            ← written here
-../gdelt/data/gdelt/                ← read from the sibling
-../ground-news/data/ground_news/    ← read from the sibling
-../eventregistry/data/eventregistry/← read from the sibling
-~/muws-allsides-dataset/allsides_crawl/output/ + multi_source_scrape/output/  ← read from here
-```
-
-## Raw vs unified — which files are which
-
-Each collector repo's `data/` holds that source's **raw, native-shape** output. This repo's
-`data/unified/` holds the **converted** copies. They are different files, and both are kept.
-
-| file | shape |
-|---|---|
-| `../gdelt/data/gdelt/gdelt_stories_de_min3.jsonl` | raw — `n_outlets`, `probes`, `seendate`, `socialimage`, `themes` |
-| `../ground-news/data/ground_news/ground_news.jsonl` | raw — `sources`, `summary_left`, `source_bias`, `dek` |
-| `../eventregistry/data/eventregistry/articles_germany.jsonl` | raw — one flat article per line |
-| **`data/unified/unified_*.jsonl`** | **unified — `articles[]` each with `stance`, `bias_rating`, `body_text`, `meta`** |
-
-**Ground News provenance carries into unified.** In `unified_ground_news.jsonl`,
-`stance_summaries` and `meta.bias_comparison` are **GPT output**, and `meta.generated_headline`
-is LLM-written. Article `stance` is a **human, outlet-level, US-framed** label. For
-translated articles, `headline` is Ground News' English machine translation, and the
-original is in `meta.original_title`. Details:
-the `ground-news` README, section "What is human, what is GPT".
-
-The UI only ever reads the unified files. Raw is kept as the archive, because unification is
-lossy: source-specific fields survive only inside `meta`, so a schema change is a cheap
-re-run from raw rather than a re-crawl.
-
-## Why unification is a separate step, not done at crawl time
-
-It would be neater if each crawler simply wrote the unified format directly. It cannot,
-for three concrete reasons — the unified record depends on data that does not exist yet
-when the crawler runs:
-
-1. **GDELT bodies and images arrive later.** `convert_gdelt` reads each story's
-   `enrichment` field, which `gdelt_enrich_bulk.py` produces by crawling the outlets
-   *after* collection. At `gdelt_dump_pull.py` time there are no bodies to write.
-2. **GDELT stories do not exist at collection time.** A unified record is story-level, but
-   the collector emits *articles*; `gdelt_cluster_bulk.py` groups them into stories in a
-   later pass.
-3. **AllSides bodies come from a different repo.** They are joined by URL out of the Qbias
-   `multi_source_scrape` output, which is an independent crawl on its own schedule.
-
-And the cost it would save is small. A **full** unification of all four sources — the
-entire 7.3 GB corpus — takes **178 seconds** (~4 GB peak RSS). It is not the bottleneck;
-collection is. Running it is also how stale output gets repaired: the run on 2026-09-23
-attached **154,084 GDELT bodies** that the previous unified files predated and therefore
-showed as zero.
-
-If unification later does become slow, the fix is to make it *incremental* (convert only
-stories whose raw mtime is newer than the unified output), not to fold it into the
-crawlers — that would couple every collector to the unified schema and make a schema change
-require a re-crawl instead of a 3-minute local pass.
-
-## Unify
+Converts the four sources (GDELT, Ground News, Event Registry, AllSides) into one format,
+and provides a Streamlit app to browse them.
 
 ```bash
-python unify/unify.py                      # all sources -> data/unified/
-python unify/unify.py --only gdelt         # one source; unified_all is rebuilt from disk
-python unify/analytics.py --markdown --json
+python unify/unify.py                    # all sources → data/unified/unified_<source>.jsonl + unified_all.jsonl
+python unify/unify.py --only gdelt       # one source
+streamlit run ui/dataset_explorer.py     # Story Feed + Dataset Statistics
 ```
 
-One JSON object per line = one **story** with an `articles` list. Every article carries a
-coarse `stance` (left/center/right/unknown) and a fine `bias_rating` (7-tier); sources
-without ratings get `unknown`. Source-specific extras live verbatim under `meta` at both
-story and article level. Full schema: the [unify/unify.py](unify/unify.py) docstring.
+`unify.py` reads each collector's output from the sibling folders, and AllSides from
+`muws-allsides-dataset`. A full run takes about 3 minutes.
 
-> **Done 2026-09-23.** The unified files were rebuilt and now carry the GDELT enrichment
-> (**154,084 bodies**, up from 0). The previous files are kept at
-> `data/unified/archive/pre-enrichment-20260923/`. Re-run `unify.py` whenever a collector
-> has produced new data — it is a full rebuild and takes ~3 minutes.
+## Format
 
-## Explore
+One JSON object per line is one **story** containing a list of **articles**:
 
-```bash
-streamlit run ui/dataset_explorer.py
-streamlit run ui/dataset_explorer.py -- --data <root>/unified/unified_gdelt.jsonl
+```
+story:   story_id, source_dataset, story_url, date, title, story_summary,
+         stance_summaries {left, center, right}, topics[], bias_distribution, meta, articles[]
+article: article_id, stance (left|center|right|unknown),
+         bias_rating (far_left … far_right | unknown), source_name, url, date, headline,
+         description, body_text, lang, paywall, is_featured, news_type, meta
 ```
 
-One UI for every dataset — each page reads the unified format, so the sidebar picker
-switches between sources without changing pages.
+Source-specific fields are kept unchanged under `meta`. The full schema is in the
+[`unify.py`](unify/unify.py) docstring.
 
-- **Story Feed** — filterable feed (topics, places, blindspot, language, dates) with a
-  story detail view: lead image, cluster facts, per-source cards, full article text where
-  the dataset carries it.
-- **Dataset Statistics** — coverage, bias mix, publisher leaderboard, topic clusters, and
-  a per-strategy breakdown on `unified_all.jsonl`.
+## Caveats
 
-The picker defaults to `unified_ground_news.jsonl`; `unified_all.jsonl` is ~1.8 GB and is
-sorted last so it is chosen deliberately.
+- `stance` is the **outlet's** label, not a judgement of the article. GDELT and Event
+  Registry have no labels (`unknown`).
+- Ground News `stance_summaries` and `bias_comparison` are GPT-generated. For translated
+  articles, `headline` is the English translation and `meta.original_title` is the
+  original.
+- AllSides repeats the same article across many stories (68,352 entries, 8,072 unique
+  URLs), so deduplicate by URL before counting articles.
+- Event Registry stories are grouped by its `eventUri`; most articles have none and stay
+  single-article stories.
+- Event Registry's `story_summary` is the opening of the body, not a real summary.
 
-> The **Topic Discovery** page moved to `ground-news`, because
-> it drives that scraper rather than reading the unified format.
-
-> **Known duplication:** `ui/common.py` and `germanlib.py` are vendored copies also
-> present in ground-news. If you change one, change the other. They were duplicated
-> rather than packaged so each folder runs standalone.
-
-## Known caveats in the unified data
-
-- **AllSides articles inflate ~8×** — 68,352 article slots collapse to 8,072 unique URLs,
-  because the same article is reused across story pages via the "More from the
-  Left/Center/Right" sidebars. **Deduplicate by URL before computing any per-article
-  statistic.** This has already produced one materially wrong result — see
-  `analytics/docs/experiments.md`.
-- `is_featured: false` AllSides articles come from those sidebars and may be off-story.
-- Event Registry stories are grouped by ER's own `eventUri`; only 16.5% of articles have one, so 108,549 of 110,941 stories are still single-article.
-- Ground News `stance` derives from `source_bias`, ~37% `unknown`, and is **outlet-level**.
-- Event Registry's `story_summary` is *derived* (`lede(body)`), not a real summary.
-
-## Docs
-
-- [docs/dataset_comparison_report.md](docs/dataset_comparison_report.md) — all four
-  strategies measured against the data on disk
-- [docs/german_news_strategy_comparison.md](docs/german_news_strategy_comparison.md) —
-  the earlier three-way comparison; GDELT figures there are superseded
-- `analytics` — the written provider analysis
-
-## Environment
-
-`streamlit`, `pandas`, `plotly` — conda env `base` here has them.
+**Requirements:** `streamlit`, `streamlit-searchbox`, `pandas`, `plotly`.

@@ -23,7 +23,7 @@ for each source are in the sibling folders of the same repository:
 | [docs/sources.md](docs/sources.md) | Per provider: how to collect, what you get, limits, images. Also ten other providers |
 | [docs/keywords_and_apis.md](docs/keywords_and_apis.md) | The keywords and topic pages used, GDELT / Event Registry filters, bounded collection |
 | [docs/experiments.md](docs/experiments.md) | Stance-label audit, publisher-name swap test, LLM outlier check, translation audit, clustering evaluation |
-| [docs/problems.md](docs/problems.md) | Every known problem with its status, plus what is blocked and what I need |
+| [docs/problems.md](docs/problems.md) | Every known problem with its status, and future directions |
 
 ## Main findings
 
@@ -45,8 +45,8 @@ for each source are in the sibling folders of the same repository:
 5. **Clustering (German, scored against Event Registry's event IDs):** BGE-M3 on full
    bodies reaches **0.79 F1** and TF-IDF on title + lede ties it. Our production GDELT
    clusterer scores **0.45**, missing about two-thirds of same-event pairs.
-6. **Collection is now bounded.** One keyword-filtered GDELT week gives **273** German
-   political stories with 3+ outlets in about 10 minutes, instead of a 172 GB census.
+6. **Collection is bounded.** One keyword-filtered GDELT week gives **273** German
+   political stories with 3+ outlets in about 10 minutes.
 
 ## The four providers at a glance
 
@@ -71,11 +71,11 @@ and Ground News.
 
 The `ui/` folder converts all four sources into one JSONL schema: one line per **story**,
 holding a list of **articles**, each with `stance` (left / center / right / unknown) and a
-7-point `bias_rating`. The schema is in [`ui/unify/unify.py`](../ui/unify/unify.py). The current files were checked
-on 2026-09-28: all 287,142 stories parse, have every field, and use only allowed values.
+7-point `bias_rating`. The schema is in [`ui/unify/unify.py`](../ui/unify/unify.py). All 287,142
+stories parse, have every field, and use only allowed values.
 Three small inconsistencies remain (see [problems #19–21](docs/problems.md#data-format)):
 language codes differ by source, AllSides articles have no date, and one AllSides story ID
-appears twice. Data is never committed; each folder keeps it in a gitignored `data/` folder.
+appears twice.
 
 ## Scripts
 

@@ -110,8 +110,8 @@ optionally `sourceUri`, plus `allowUseOfArchive=False`.
 
 ⚠️ Setting `minSentiment` or `maxSentiment` silently restricts results to English.
 
-**Cost:** 1 token per 100-article page. The free tier has 2,000 non-renewing tokens (461
-left) and a 30-day window. The archive costs 5 tokens per searched year.
+**Cost:** 1 token per 100-article page. The free tier has 2,000 non-renewing tokens and a
+30-day window. The archive costs 5 tokens per searched year.
 
 ---
 

@@ -1,84 +1,41 @@
-# Event Registry collector (`eventregistry/`)
+# Event Registry Collector
 
-Event Registry (newsapi.ai) pull for full-text German articles.
-
-Part of the `news` repository, next to `gdelt/`, `ground-news/`, `ui/` and `analytics/`.
-
-> ## ⚠️ Read this before collecting
->
-> - **Redistribution is prohibited.** The ToS forbid sharing or sublicensing data from
->   the service and claim even structured metadata as Event Registry's property. **This
->   data cannot be published** — internal evaluation only. It is the blocking constraint
->   on any public dataset release.
-> - **461 free tokens remain** of a 2,000 non-renewing allowance. One 7-day pull cost
->   ~1,540. A second is no longer affordable.
-> - **30-day recency window.** Older data needs the paid archive at **5 tokens per
->   searched year**; the script sets `allowUseOfArchive=False` as a guard.
-
-## Where data lives
-
-**In this folder, under [`data/`](data) — gitignored, so it is never pushed.** This folder owns
-`data/eventregistry/` (~201 MB). Given the ToS above, that gitignore is doing real work:
-this data must not end up in a pushed commit.
+Pulls German full-text articles from the [Event Registry](https://eventregistry.org)
+(newsapi.ai) API.
 
 ```bash
-export EVENTREGISTRY_API_KEY=...        # or ~/.eventregistry_key
-```
-
-## Usage
-
-```bash
+export EVENTREGISTRY_API_KEY=...
 python eventregistry_german_sources.py --skip-discovery --days 7 --pull 5000
 ```
 
-Costs **1 token per 100-article page**.
+The query uses `lang="deu"`, publishers located in Germany, and a date window. It costs
+1 API token per 100-article page, and `allowUseOfArchive=False` prevents archive charges.
 
-## What you get
+## What one 7-day pull gave
 
 | | |
 |---|---|
-| Articles pulled | 129,628 (one 7-day window, 320 sources) |
-| German | 100% |
-| **Full body text** | **100%**, median 2,111 chars, clean UTF-8 |
-| Images | 98.6% URL (no captions) |
-| Authors | ✅ |
-| Topics | **none collected** — see below |
-| Stance labels | none |
+| Articles | 129,628 from 320 German sources |
+| Body text | 100%, median 2,111 characters |
+| Images | 98.6% have an image URL (no captions) |
+| Authors | yes |
+| Events | 16.5% of articles carry Event Registry's `eventUri` |
+| Topics, stance | none |
 
-## Three filters we should be using and are not
+## Limits
 
-The API has the richest filter set of any provider in this project, and our pull uses
-almost none of it:
+- **The terms of service forbid redistributing the data**, including metadata. Use it
+  for internal evaluation only.
+- **Few articles are grouped into events.** Articles flagged as duplicates are left out of
+  events, so wire stories carried by many outlets end up as singletons.
+- **Topics were not collected.** The default `returnInfo` excludes concepts and
+  categories; request them explicitly to get topics.
+- Some outlets (e.g. `sueddeutsche.de`) return only ~300-character teasers.
 
-1. **`startSourceRankPercentile`** — our pull is dominated by finance wires
-   (wallstreet-online.de 4,249) and the Ippen local network, which cluster worst and carry
-   the least editorial signal. A percentile floor drops them at the API.
-2. **`eventFilter=skipArticlesWithoutEvent`** — 83.5% of what we pulled has no `eventUri`
-   and became a singleton. (Caveat: this also excludes the wire stories ER wrongly marks
-   duplicates — which is the material we most want. Use knowingly.)
-3. **`conceptUri` / `categoryUri`** — we collected **zero topics**, because the default
-   `returnInfo` excludes `concepts` and `categories`. A scraper defect, not a provider
-   limit, but fixing it costs tokens.
+## Clustering evaluation
 
-Full reference: `analytics/docs/keywords_and_apis.md`.
+[`clustering_eval/`](clustering_eval/) compares story-clustering methods against Event
+Registry's own events.
 
-## Known limits
-
-- **Not a story dataset.** 83.5% of articles have no `eventUri`, so after unification 108,549 of 110,941 stories are single-article.
-- **The duplicate flag destroys the interesting clusters.** Of 59,088 articles flagged
-  `isDuplicate: true`, exactly **2** carry an `eventUri` — up to **48 independent German
-  outlets** carrying one dpa wire item get deleted from the event graph.
-  **Recoverable:** title-clustering the raw file yields 67,005 clustered articles (51.7%)
-  at zero API cost, ~8× what `eventUri` surfaces.
-- **`lang="deu"` blocks cross-lingual coverage** — ~9.5% of events are anchored in another
-  language and we hold only their German tail.
-- **`sueddeutsche.de` is `private: true`** → ~300-char teasers only, despite being the 5th
-  largest source.
-- 601 articles have a `dateTimePub` before 2026-07 — stale publisher timestamps, not
-  archive access. Filter on `dateTime` (crawl time).
-
-Detail: [docs/EVENTREGISTRY.md](docs/EVENTREGISTRY.md).
-
-## Environment
-
-Needs `eventregistry` — conda env `scrap2` here.
+**Requirements:** `eventregistry`; `sentence-transformers`, `scikit-learn` and `scipy`
+for the clustering evaluation.

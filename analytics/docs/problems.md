@@ -1,6 +1,6 @@
-# Problems, Blocked Tasks and What Is Needed
+# Known Problems and Future Directions
 
-**Status:** 🔴 blocking · 🟠 open, has a workaround · 🟡 known and accepted · ✅ fixed
+**Status:** 🔴 blocking · 🟠 open, has a workaround · 🟡 known and accepted
 
 ---
 
@@ -11,7 +11,7 @@
 | 1 | **Stance labels are per outlet, not per article.** No provider except Ad Fontes rates articles, so a stance model learns the publisher. [experiments §1](experiments.md#1-are-the-stance-labels-per-article-or-per-outlet) | 🔴 |
 | 2 | **Event Registry data cannot be published.** The ToS forbid redistribution, including metadata. | 🔴 |
 | 3 | **No single provider has bodies, labels and German together.** A join on the 56 shared domains is needed. [sources](sources.md#joining-the-providers) | 🔴 |
-| 4 | **Event Registry has 461 free tokens left** and a 30-day window. A second pull is unaffordable. | 🔴 |
+| 4 | **Event Registry's free tier is too small for large or historical pulls**; archive access and multilingual pulls need a paid plan. | 🔴 |
 
 ## Data quality
 
@@ -39,7 +39,7 @@
 
 ## Data format
 
-Found by validating the unified files on 2026-09-28. None of these breaks the schema.
+None of these breaks the schema.
 
 | # | problem | status |
 |---|---|---|
@@ -47,39 +47,16 @@ Found by validating the unified files on 2026-09-28. None of these breaks the sc
 | 20 | AllSides articles have no `date`; only the story has one. | 🟡 |
 | 21 | One AllSides story ID appears twice: AllSides reused the same URL for two fact-check roundups (2025-05-12 and 2025-12-14). | 🟠 |
 
-## Fixed
+## Future directions
 
-| problem | fix |
-|---|---|
-| GDELT collected as a 172 GB census | ✅ bounded by date range and keyword/theme filter. [keywords_and_apis §5](keywords_and_apis.md#5-bounded-collection-sept-2026) |
-| Stale unified files showed 0 GDELT bodies | ✅ rebuilt; 154,084 bodies attached |
-| Event Registry was 100% singleton stories in the unified file | ✅ `unify.py` now groups by `eventUri` (2,392 multi-article stories) |
-| Four keyword terms returned nothing | ✅ diagnosed; the English replacements are listed in [keywords_and_apis §2](keywords_and_apis.md#2-ground-news) |
-| The explorer UI imported the Ground News scraper | ✅ helpers extracted to `germanlib.py` |
-
----
-
-## Tasks and what blocks them
-
-| task | done so far | blocked by |
+| direction | what it needs | status |
 |---|---|---|
-| Bias / leaning classification | label audit, name-swap test, retraining on unseen outlets, LLM check | 🔴 needs article-level labels |
-| Stance detection (article + claim → favor / against / neutral) | task defined; NLI setup and controls planned | 🟡 needs human annotation |
-| Event clustering | 6 methods compared on German ER data | 🟡 needs human verification; the cross-lingual version needs a paid ER account |
-| Summaries, stance comparison | not started | the only references are GPT-generated (Ground News) |
+| **Bias / leaning classification** | article-level labels (e.g. Ad Fontes, or annotating the articles where an LLM and the outlet label disagree) | 🔴 blocked on labels |
+| **Stance detection** (article + claim → favor / against / neutral), trained as NLI | a human-annotated set; the NLI setup and controls are ready | 🟡 needs annotation |
+| **Cross-lingual event clustering**: translate first vs. cluster per language and link vs. multilingual embeddings | a multilingual pull (paid Event Registry plan, or EMM data) and human verification of ~100 clusters | 🟡 German-only comparison done |
+| **Summaries and stance comparison** | human references; the only existing ones are GPT-generated (Ground News). Verifying ~100 Ground News stance comparisons is a first step | not started |
+| **A German dataset with structure, text and labels** | joining GDELT stories, Event Registry bodies and Ground News outlet labels on the 56 shared domains | not started |
+| **Longer GDELT collection** | an agreed date range and topic list; Jan 2025 → now takes about 15 hours | ready to run |
 
-**The common blocker is the lack of human ground truth.** Two things are small enough to
-do alone: judging about 100 Event Registry clusters, and verifying about 100 Ground News
-stance comparisons. Article-level stance labels and human-written summaries need
-annotators.
-
-## What I need from the supervisor
-
-1. **Scope:** the final date range and topic list, so the long GDELT run is done once
-   (about 15 hours for Jan 2025 → now).
-2. **Direction:** source-audit write-up, stance comparison with human verification, or
-   cross-lingual clustering.
-3. **A paid Event Registry account**, needed only for cross-lingual clustering.
-4. **Permission to contact** EMM (EU cross-lingual clustering) and Ad Fontes (article-level
-   ratings).
-5. **Annotators or budget** for human labels.
+**The common blocker is the lack of human ground truth.** Candidate partners: EMM (EU
+cross-lingual news clustering) and Ad Fontes Media (article-level bias ratings).

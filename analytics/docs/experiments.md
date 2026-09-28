@@ -172,6 +172,5 @@ on dev. Articles were clustered within 2-day windows.
 - The German-specific model does worse than the multilingual ones.
 - The 2-day windows cap every method at 0.88, since 53% of events last longer than that.
   Fixing the windowing would gain more than switching models.
-- The cross-lingual question cannot be tested with our data. The pull was German-only, it
-  is outside the free tier's 30-day window, and 461 tokens are not enough to fetch the
-  other languages.
+- The cross-lingual question cannot be tested with this data, because the pull was
+  German-only. It needs a multilingual pull.
