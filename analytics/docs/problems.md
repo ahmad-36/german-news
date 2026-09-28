@@ -69,6 +69,25 @@ domains they share ([sources](sources.md#joining-the-providers)).
 
 ## Future directions
 
+```mermaid
+flowchart LR
+    P1["1. No human labels<br/>at article level"]
+    P2["2. No multilingual data"]
+    P3["3. Centre class"]
+    P4["4. Cross-lingual<br/>clustering"]
+    P5["5. No single source"]
+    D1(["Article-level<br/>stance labels"])
+    D2(["Stance as NLI"])
+    D3(["Compare A / B / C"])
+    D4(["Human references for<br/>summaries"])
+    D5(["Joined German dataset"])
+    P1 --> D1 & D2 & D4
+    P3 --> D1
+    P2 --> D3
+    P4 --> D3
+    P5 --> D5
+```
+
 | direction | addresses | what it needs |
 |---|---|---|
 | **Article-level stance labels**: annotate the articles where an LLM and the outlet label disagree, or license Ad Fontes ratings | 1, 3 | annotators or a licence |

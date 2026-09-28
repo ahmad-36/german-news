@@ -48,6 +48,10 @@ for each source are in the sibling folders of the same repository:
 6. **Collection is bounded.** One keyword-filtered GDELT week gives **273** German
    political stories with 3+ outlets in about 10 minutes.
 
+## Pipeline
+
+![Pipeline stages, where translation and outlet-level labels enter](assets/pipeline.svg)
+
 ## The four providers at a glance
 
 | | **GDELT** | **Event Registry** | **Ground News** | **AllSides** |
@@ -66,6 +70,19 @@ for each source are in the sibling folders of the same repository:
 Ground News gives labels and AllSides gives the template. The only way to get all three
 for German news is to join them on the **56 domains** that appear in GDELT, Event Registry
 and Ground News.
+
+```mermaid
+flowchart LR
+    G["<b>GDELT</b><br/>multi-outlet stories"]
+    E["<b>Event Registry</b><br/>full German text"]
+    N["<b>Ground News</b><br/>outlet stance labels"]
+    J["<b>Joined German dataset</b><br/>story + text + label<br/>on 56 shared domains"]
+    A["<b>AllSides</b><br/>US template, English only"]
+    G -- structure --> J
+    E -- text --> J
+    N -- labels --> J
+    A -. format .-> J
+```
 
 ## Unified data format
 

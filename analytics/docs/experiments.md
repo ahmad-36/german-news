@@ -36,6 +36,8 @@ each split compared with its own majority baseline:
 | random | 94.6% | **72.6%** | 38.9% |
 | unseen outlets | 27.3% | **30.9%** | 28.1% |
 
+![Accuracy per split: as-is, deduplicated and majority baseline](../assets/exp1_dedup.svg)
+
 **Conclusion.** Of the 94.6%, 22 points came from memorising duplicates. The rest is the
 model recognising the outlet: on unseen outlets it is no better than the majority baseline.
 Earlier random-split figures should not be cited. The literature reports the same problem:
@@ -69,6 +71,8 @@ Split by direction, the swap effect is **asymmetric**:
 | centre article → "Politico" | 556 | +19.5 toward left |
 | centre article → "The Hill" (same-side control) | 556 | −5.5 on centre, +4.6 toward right |
 
+![Change in prediction per name-edit condition and per swap direction](../assets/exp2_name_swap.svg)
+
 **Where the effect comes from.** We retrained with the test outlets held out of training
 (model A), and also with all outlet names stripped from training (model B):
 
@@ -98,6 +102,8 @@ the label, not the outlet:
 | right | 32.0% | **Fox News 28.9% (the lowest of all 15)**, NY Post 34.4% |
 | left | 59.2% | CNN 57.8%, Guardian 59.8% |
 | **center** | **78.3%** | The Hill 89.6%, Reuters 77.8% |
+
+![LLM disagreement with the outlet label, by label](../assets/exp3_llm_disagreement.svg)
 
 - Fox News is not an outlier. It is the *most* consistent outlet.
 - `center` means "no lean", which has no positive markers in text, so the model almost
@@ -163,6 +169,8 @@ on dev. Articles were clustered within 2-day windows.
 | BGE-M3, title + lede | 0.84 | 0.71 | 0.77 |
 | gbert-large (German-only model) | 0.78 | 0.71 | 0.74 |
 | **our GDELT clusterer** (SequenceMatcher, t = 0.65) | 0.98 | **0.29** | **0.45** |
+
+![BCubed F1 per clustering method](../assets/exp5_clustering.svg)
 
 - **Our production GDELT clusterer misses about two-thirds of same-event pairs.** Tuning
   its threshold reaches only 0.51.

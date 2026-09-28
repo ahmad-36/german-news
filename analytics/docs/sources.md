@@ -10,8 +10,9 @@ on the data on disk (Jan–Aug 2026).
 
 Target pipeline: **① collect → ② filter (language, country, topic) → ③ topic clustering →
 ④ same-event clustering → ④b split each story by stance → ⑤ downstream tasks** (article /
-topic / stance summaries, stance comparison, stance prediction). A diagram is in
-[../assets/pipeline.svg](../assets/pipeline.svg).
+topic / stance summaries, stance comparison, stance prediction).
+
+![Pipeline stages, where translation and outlet-level labels enter](../assets/pipeline.svg)
 
 | stage | GDELT | Event Registry | Ground News | AllSides |
 |---|---|---|---|---|
