@@ -25,7 +25,48 @@ for each source are in the sibling folders of the same repository:
 | [docs/experiments.md](docs/experiments.md) | Stance-label audit, publisher-name swap test, LLM outlier check, translation audit, clustering evaluation |
 | [docs/problems.md](docs/problems.md) | The five open problems that block further research, and future directions |
 
-## Main findings
+## Sources compared
+
+The first four are the ones we collected. GDELT and Event Registry are raw feeds (articles,
+no political leaning); Ground News and AllSides are the platforms closest to what we want
+to build, scraped to learn from their format and labels. The other ten were checked but
+not collected. Sizes and per-field coverage are in [docs/sources.md](docs/sources.md).
+
+| source | language | body text | images / video | clustering | stance label | summary | access | limitation |
+|---|---|---|---|---|---|---|---|---|
+| **GDELT** | multilingual (we pulled German) | none (11% via our crawl) | none native; **links scraped** by our crawl (145,078 `og:image` URLs, 88,992 captions), not downloaded; no video | none; ours, machine (title similarity, weak) | none | none | free, open, no account | no text, no labels; noisy machine topics |
+| **Event Registry** | multilingual (we pulled German) | full | image **links** in the API (98.6%), not downloaded; no captions, no video | machine (`eventUri`, 16.5% of articles) | none | none | account required; free tier 2,000 tokens, then paid | **research use only, no redistribution**; free tier covers the last 30 days |
+| **Ground News** | multilingual (12% German, machine-translated to English) | none (headline + dek) | none (no image field); no video | yes, method undocumented | outlet-wise (human); 37% `unknown` | machine (GPT) | free, scraped (no API, bot detection) | tiny (894 stories); translation damages names |
+| **AllSides** | English | partial (17%, our scrape) | images **scraped and downloaded** (10,716 files, 8 GB; 5,306 with captions); no video | human (editorial) | outlet-wise (human) | human (editorial) | free, scraped (no API) | US only; text duplicated ~4× |
+| EMM (EU JRC) | multilingual (80 languages) | unclear | not checked | machine, cross-lingual | none (framing, not left/right) | none | researcher access unclear | public NewsBrief discontinued |
+| Ad Fontes | English | no (ratings only) | n/a (ratings only) | none | **article-wise (human + AI)** | none | paid licence | US-focused |
+| Media Cloud | multilingual (~20 languages) | varies by source | not checked | none | none | none | free API, researcher account | archive, not stories |
+| CC-NEWS | multilingual | full (raw HTML) | links inside the raw HTML; files not included | none | none | none | free, open licence | parsing, dedup and clustering all on us |
+| NewsCatcher | multilingual | full | not checked | machine (Leiden) | none | none | paid (trial) | cost |
+| Perigon | multilingual | full | not checked | partial (story grouping) | none | none | 150 requests/month free, then $250+/mo | 22% duplicates |
+| Webz.io | multilingual | full | not checked | none | none | none | paid | 13% duplicates |
+| MBFC | multilingual (international outlets) | no (ratings only) | n/a (ratings only) | none | outlet-wise (human) | none | paid API tiers | ratings only |
+| NewsGuard | multilingual (EU outlets) | no (ratings only) | n/a (ratings only) | none | outlet-wise (human), trust score, not left/right | none | commercial | credibility, not stance |
+| NELA-GT | English | full | not checked | none | outlet-wise (human, from MBFC) | none | free dataset | static (2018–2022), US only |
+
+Every stance label is outlet-wise except Ad Fontes, which is English and paid. No source
+combines German text, same-event clustering and article-wise stance.
+
+## The gap
+
+AllSides and Ground News show how one event is covered across the political spectrum, but
+only for US and English-language news. Ground News includes some German outlets, yet only
+through machine translation (which damages names) and with US-agency outlet ratings.
+For Germany and Europe nothing comparable exists: EMM clusters news across languages but
+has no notion of stance, and GDELT and Event Registry deliver articles without labels.
+There is also no public dataset of German multi-outlet stories with full text, images and
+stance judged per article rather than per outlet. This project would fill that gap:
+daily collection of German (later European) news, grouped into same-event stories, with
+text and images, and stance labels at the article level.
+
+## Experiments
+
+Early experiments on the collected data, in more detail in [docs/experiments.md](docs/experiments.md).
 
 1. **Stance labels are per outlet, not per article.** AllSides and Ground News give every
    article its publisher's rating. All 15 outlets in the AllSides eval set have 100% label
@@ -45,44 +86,8 @@ for each source are in the sibling folders of the same repository:
 5. **Clustering (German, scored against Event Registry's event IDs):** BGE-M3 on full
    bodies reaches **0.79 F1** and TF-IDF on title + lede ties it. Our production GDELT
    clusterer scores **0.45**, missing about two-thirds of same-event pairs.
-6. **Collection is bounded.** One keyword-filtered GDELT week gives **273** German
-   political stories with 3+ outlets in about 10 minutes.
-
-## Pipeline
 
 ![Pipeline stages, where translation and outlet-level labels enter](assets/pipeline.svg)
-
-## The four providers at a glance
-
-| | **GDELT** | **Event Registry** | **Ground News** | **AllSides** |
-|---|---|---|---|---|
-| Access | open bulk dumps | REST API (key) | scraped | scraped |
-| Collected by | date + keyword/theme | date + language | trending pages + keyword | date |
-| Stories / articles | 173,388 / 1,408,753 | 110,941 / 129,628 | 894 / 46,030 | 1,919 / 68,352 (8,072 unique) |
-| German | 100% | 100% | 12.1% | 0% |
-| Body text | 154,084 (our crawl) | 100% | none | 17.3% |
-| Images | 145,078 URLs (our crawl) | 98.6% URLs | none | 10,716 files on disk |
-| Stance label | none | none | 62.6%, per outlet | 99.9%, per outlet |
-| Clustering | ours (title similarity) | ER `eventUri`, 16.5% of articles | theirs, undocumented | editorial |
-| Licence | open | research use only | scraped | scraped |
-
-**They complement each other:** GDELT gives story structure, Event Registry gives text,
-Ground News gives labels and AllSides gives the template. The only way to get all three
-for German news is to join them on the **56 domains** that appear in GDELT, Event Registry
-and Ground News.
-
-```mermaid
-flowchart LR
-    G["<b>GDELT</b><br/>multi-outlet stories"]
-    E["<b>Event Registry</b><br/>full German text"]
-    N["<b>Ground News</b><br/>outlet stance labels"]
-    J["<b>Joined German dataset</b><br/>story + text + label<br/>on 56 shared domains"]
-    A["<b>AllSides</b><br/>US template, English only"]
-    G -- structure --> J
-    E -- text --> J
-    N -- labels --> J
-    A -. format .-> J
-```
 
 ## Unified data format
 

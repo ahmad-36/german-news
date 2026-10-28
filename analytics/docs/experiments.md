@@ -28,8 +28,18 @@ distinct labels.
 
 **Deduplication correction.** The eval set holds only **2,807 distinct texts in 11,779
 records** (4.2× duplication from AllSides sidebars). The split hashed `article_id`, so the
-same text landed in both train and test for 77.9% of records. TF-IDF + logistic regression,
-each split compared with its own majority baseline:
+same text landed in both train and test for 77.9% of records. TF-IDF + logistic regression
+(trained from scratch, no fine-tuning) on two splits:
+
+- **random:** articles are shuffled 65/35 into train/test (by hash), so every outlet appears
+  on both sides. A model can score well either by reading stance or by recognising the outlet.
+- **unseen outlets:** whole outlets are held out of training. Each of 4 folds holds out one
+  left, one centre and one right outlet (e.g. NBC / The Hill / Fox News), and the accuracy is
+  averaged over the folds. Recognising the outlet no longer helps, so what remains is stance
+  read from the text.
+
+The gap between the two is a direct measure of the outlet shortcut. Each split is compared
+with its own majority baseline:
 
 | split | as-is | deduplicated | majority baseline (dedup.) |
 |---|---|---|---|
